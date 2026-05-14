@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CBH Goal Setting — Mobile First</title>
+  <style>
+    :root {
+      --navy: #14375d;
+      --blue: #185fa5;
+      --sky: #eef5fb;
+      --green: #3b6d11;
+      --green-soft: #eaf3de;
+      --orange: #e78b39;
+      --orange-soft: #fff4e8;
+      --purple: #7562b7;
+      --purple-soft: #efedff;
+      --text: #1a202c;
+      --muted: #64748b;
+      --light: #f5f7fa;
+      --line: #dce6f1;
+      --card: #ffffff;
+      --danger: #a32d2d;
+      --shadow: 0 10px 28px rgba(20, 55, 93, 0.1);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--light);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; border: none; }
+
+    .app {
+      max-width: 1040px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: #fff;
+      box-shadow: 0 0 0 1px rgba(220, 230, 241, 0.7);
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--sky);
+      color: var(--navy);
+      font-size: 20px;
+      flex: 0 0 auto;
+    }
+
+    .brand-title {
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 17px;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-sub {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .header-pill {
+      background: var(--green-soft);
+      color: var(--green);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .screen {
+      display: none;
+      padding: 16px;
+      padding-bottom: 94px;
+    }
+
+    .screen.active { display: block; }
+
+    .hero {
+      background: linear-gradient(135deg, var(--navy), var(--blue));
+      color: #fff;
+      border-radius: 24px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-kicker {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      opacity: .75;
+      margin-bottom: 9px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(24px, 6vw, 36px);
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      opacity: .86;
+      line-height: 1.45;
+      font-size: 14px;
+      max-width: 700px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 18px 0 10px;
+    }
+
+    .section-title {
+      margin: 0;
+      color: var(--navy);
+      font-size: 18px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      margin: 3px 0 0;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: 0 3px 12px rgba(20,55,93,.04);
+      margin-bottom: 10px;
+    }
+
+    .goal-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .goal-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .goal-title {
+      color: var(--navy);
+      font-weight: 800;
+      line-height: 1.3;
+      font-size: 15px;
+    }
+
+    .goal-meta {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .badge.word { background: #e6f1fb; color: #0c447c; }
+    .badge.personal { background: var(--purple-soft); color: #3c3489; }
+    .badge.strong { background: var(--green-soft); color: #27500a; }
+    .badge.group { background: #faeeda; color: #633806; }
+    .badge.done { background: var(--green-soft); color: var(--green); }
+
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: #e8eef5;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--green);
+      transition: width .25s ease;
+    }
+
+    .progress-text {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+      min-width: 44px;
+      text-align: right;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 44px;
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--navy);
+      background: #fff;
+      border: 1px solid var(--line);
+      transition: transform .12s, background .12s;
+    }
+
+    .btn:active { transform: translateY(1px); }
+    .btn.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .btn.secondary { background: var(--sky); color: var(--blue); border-color: #b5d4f4; }
+    .btn.success { background: var(--green); color: #fff; border-color: var(--green); }
+    .btn.danger { color: var(--danger); background: #fff5f5; border-color: #f3b6b6; }
+    .btn.full { width: 100%; }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .quick-action {
+      text-align: left;
+      min-height: 88px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 14px;
+      box-shadow: 0 3px 12px rgba(20,55,93,.04);
+    }
+
+    .quick-icon {
+      font-size: 23px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .quick-title {
+      color: var(--navy);
+      font-weight: 800;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .quick-sub {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .category-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .category-card {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      text-align: left;
+      width: 100%;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .category-card.selected {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(24,95,165,.12);
+    }
+
+    .cat-icon {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+      background: var(--sky);
+    }
+
+    .cat-content { min-width: 0; }
+    .cat-title { font-weight: 800; color: var(--navy); margin-bottom: 3px; }
+    .cat-desc { color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+    .stepper {
+      display: flex;
+      gap: 6px;
+      margin: 8px 0 16px;
+    }
+
+    .step-dot {
+      flex: 1;
+      height: 5px;
+      border-radius: 999px;
+      background: #dce6f1;
+    }
+
+    .step-dot.active { background: var(--blue); }
+
+    .form-group { margin-bottom: 14px; }
+    label {
+      display: block;
+      color: var(--navy);
+      font-size: 13px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .input, .textarea, .select {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+    }
+
+    .textarea { min-height: 96px; resize: vertical; line-height: 1.45; }
+    .input:focus, .textarea:focus, .select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,95,165,.12); }
+
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .chip {
+      white-space: nowrap;
+      min-height: 38px;
+      border-radius: 999px;
+      padding: 8px 13px;
+      background: #fff;
+      border: 1px solid var(--line);
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .chip.selected { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+    .day-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .day-card {
+      min-height: 82px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 12px;
+      text-align: left;
+      position: relative;
+    }
+
+    .day-card.done { border-color: #c0dd97; background: #f6fbf0; }
+    .day-card.disabled { opacity: .45; pointer-events: none; }
+    .day-card.selected { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,95,165,.12); }
+    .day-name { color: var(--navy); font-weight: 900; font-size: 13px; }
+    .day-status { color: var(--muted); font-size: 12px; margin-top: 5px; }
+    .checkmark {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      color: var(--green);
+      font-weight: 900;
+    }
+
+    .resource-list { display: grid; gap: 8px; }
+    .resource-row {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .resource-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      background: var(--sky);
+      flex: 0 0 auto;
+    }
+
+    .resource-title { color: var(--navy); font-weight: 800; margin-bottom: 2px; }
+    .resource-sub { color: var(--muted); font-size: 12px; line-height: 1.3; }
+    .chev { margin-left: auto; color: var(--muted); }
+
+    .history-card { cursor: pointer; }
+    .history-detail { display: none; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .history-card.open .history-detail { display: block; }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 28px;
+      align-items: center;
+      gap: 8px;
+      margin: 10px 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .bar-track { height: 9px; background: #e8eef5; border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--blue); border-radius: inherit; }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 1040px;
+      width: 100%;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding: 8px 8px max(8px, env(safe-area-inset-bottom));
+      z-index: 30;
+    }
+
+    .nav-btn {
+      background: transparent;
+      color: var(--muted);
+      border-radius: 14px;
+      padding: 8px 4px;
+      display: grid;
+      gap: 3px;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .nav-btn span:first-child { font-size: 20px; }
+    .nav-btn.active { background: var(--sky); color: var(--blue); }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .46);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 60;
+      padding: 16px 0 0;
+    }
+
+    .modal-backdrop.show { display: flex; }
+
+    .sheet {
+      width: 100%;
+      max-width: 640px;
+      max-height: 92vh;
+      background: #fff;
+      border-radius: 24px 24px 0 0;
+      overflow: auto;
+      box-shadow: 0 -16px 46px rgba(15,23,42,.25);
+    }
+
+    .sheet-head {
+      position: sticky;
+      top: 0;
+      background: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--line);
+      z-index: 2;
+    }
+
+    .sheet-title { color: var(--navy); font-weight: 900; font-size: 18px; }
+    .sheet-sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+    .close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: #f4f8fc;
+      color: var(--navy);
+      font-size: 20px;
+    }
+
+    .sheet-body { padding: 16px; }
+    .sheet-actions {
+      position: sticky;
+      bottom: 0;
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px max(12px, env(safe-area-inset-bottom));
+      background: #fff;
+      border-top: 1px solid var(--line);
+    }
+
+    .stars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .star-btn {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 8px;
+      color: var(--navy);
+      font-weight: 800;
+    }
+
+    .star-btn.selected { background: var(--orange-soft); border-color: var(--orange); color: #854f0b; }
+
+    .toast {
+      position: fixed;
+      left: 16px;
+      right: 16px;
+      bottom: 82px;
+      max-width: 560px;
+      margin: 0 auto;
+      background: var(--navy);
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 800;
+      font-size: 13px;
+      display: none;
+      z-index: 80;
+      box-shadow: var(--shadow);
+    }
+
+    .toast.show { display: block; }
+
+    .desktop-grid { display: grid; gap: 10px; }
+
+    @media (min-width: 768px) {
+      body { padding: 24px; }
+      .app { border-radius: 26px; overflow: hidden; min-height: calc(100vh - 48px); }
+      .screen { padding: 24px; padding-bottom: 108px; }
+      .hero { padding: 28px; }
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1.1fr .9fr;
+        gap: 16px;
+        align-items: start;
+      }
+      .quick-actions { grid-template-columns: repeat(2, 1fr); }
+      .category-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .day-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .desktop-grid { grid-template-columns: 1fr 1fr; }
+      .btn-row.mobile-stack { flex-direction: row; }
+      .sheet { border-radius: 24px; margin-bottom: 24px; }
+      .modal-backdrop { align-items: center; padding: 24px; }
+    }
+
+    @media (max-width: 520px) {
+      .header-pill { display: none; }
+      .quick-actions { grid-template-columns: 1fr; }
+      .btn-row.mobile-stack { flex-direction: column; }
+      .btn-row.mobile-stack .btn { width: 100%; }
+      .bar-row { grid-template-columns: 94px 1fr 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark">🎯</div>
+        <div>
+          <div class="brand-title">Goals</div>
+          <div class="brand-sub" id="headerStatus">0 current goals</div>
+        </div>
+      </div>
+      <div class="header-pill" id="weekPill">This week</div>
+    </header>
+
+    <main>
+      <section class="screen active" id="dashboardScreen">
+        <div class="hero">
+          <div class="hero-kicker">CBH Goal Setting</div>
+          <h1>Your next step matters.</h1>
+          <p>Choose one goal for this week, track your progress, and reflect when you complete the cycle.</p>
+        </div>
+
+        <div class="quick-actions">
+          <button class="quick-action" onclick="goTo('focusScreen')">
+            <span class="quick-icon">＋</span>
+            <span class="quick-title">Start New Goal</span>
+            <span class="quick-sub">Choose a focus area and set your weekly rhythm.</span>
+          </button>
+          <button class="quick-action" onclick="goTo('pastScreen')">
+            <span class="quick-icon">↻</span>
+            <span class="quick-title">Past Goals</span>
+            <span class="quick-sub">Review history and restart a previous goal.</span>
+          </button>
+        </div>
+
+        <div class="dashboard-grid">
+          <div>
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">Current Goals</h2>
+                <p class="section-note">Track what you are working on this week.</p>
+              </div>
+            </div>
+            <div id="currentGoalsList"></div>
+          </div>
+
+          <div>
+            <div class="section-head">
+              <div>
+                <h2 class="section-title">Recommended</h2>
+                <p class="section-note">Suggested starting points from CBH.</p>
+              </div>
+            </div>
+            <div id="recommendedList"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="focusScreen">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Choose a Focus Area</h2>
+            <p class="section-note">Pick the main area you want to work on.</p>
+          </div>
+        </div>
+        <div class="stepper"><span class="step-dot active"></span><span class="step-dot"></span><span class="step-dot"></span><span class="step-dot"></span></div>
+        <div class="category-grid" id="categoryGrid"></div>
+        <div class="btn-row mobile-stack" style="margin-top:14px;">
+          <button class="btn" onclick="goTo('dashboardScreen')">Back to Goals</button>
+          <button class="btn primary" onclick="goToGoalSetup()">Continue</button>
+        </div>
+      </section>
+
+      <section class="screen" id="setupScreen">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Set a Goal</h2>
+            <p class="section-note" id="setupCategoryLabel">Choose your goal and schedule.</p>
+          </div>
+        </div>
+        <div class="stepper"><span class="step-dot active"></span><span class="step-dot active"></span><span class="step-dot active"></span><span class="step-dot"></span></div>
+
+        <div class="card">
+          <div class="form-group">
+            <label for="goalSelect">Specific Goal</label>
+            <select class="select" id="goalSelect" onchange="syncGoalFromSelect()"></select>
+          </div>
+          <div class="form-group">
+            <label for="goalText">Goal Statement</label>
+            <textarea class="textarea" id="goalText" placeholder="Write your goal here..."></textarea>
+          </div>
+          <div class="desktop-grid">
+            <div class="form-group">
+              <label for="daysPerWeek">How many days this week?</label>
+              <select class="select" id="daysPerWeek">
+                <option value="3">3 days</option><option value="4">4 days</option><option value="5">5 days</option><option value="6">6 days</option><option value="7">7 days</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="timesPerDay">How many times per day?</label>
+              <select class="select" id="timesPerDay">
+                <option value="1">1 time</option><option value="2">2 times</option><option value="3">3 times</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="scheduleText">When will you do it?</label>
+            <input class="input" id="scheduleText" placeholder="Example: Morning after prayer" />
+          </div>
+          <div class="form-group">
+            <label for="actionPlan">Break it down into steps (optional)</label>
+            <textarea class="textarea" id="actionPlan" placeholder="Add your own action plan..."></textarea>
+          </div>
+          <div class="btn-row mobile-stack">
+            <button class="btn" onclick="goTo('focusScreen')">Back</button>
+            <button class="btn secondary" onclick="openModal('reminderModal')">Add Reminder</button>
+            <button class="btn primary" onclick="createGoal()">Create Goal</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen" id="trackScreen">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Track This Week</h2>
+            <p class="section-note" id="trackingGoalTitle">Select a day to mark progress.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="progress-wrap">
+            <div class="progress-bar"><div class="progress-fill" id="trackProgressFill"></div></div>
+            <div class="progress-text" id="trackProgressText">0/0</div>
+          </div>
+        </div>
+
+        <div class="day-grid" id="dayGrid"></div>
+
+        <div class="card" style="margin-top:12px;">
+          <div class="form-group">
+            <label for="dayNote">Notes for selected day</label>
+            <textarea class="textarea" id="dayNote" placeholder="Select a day first, then add a note..."></textarea>
+          </div>
+          <div class="btn-row mobile-stack">
+            <button class="btn" onclick="goTo('dashboardScreen')">Return to Goals</button>
+            <button class="btn secondary" onclick="saveDayNote()">Save Note</button>
+            <button class="btn success" id="reflectButton" onclick="openReflection()" style="display:none;">Reflect on this Goal</button>
+          </div>
+        </div>
+
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Goal Resources</h2>
+            <p class="section-note">Resources related to the current goal.</p>
+          </div>
+        </div>
+        <div class="resource-list">
+          <button class="resource-row" onclick="openModal('scriptureModal')"><span class="resource-icon">📖</span><span><span class="resource-title">Scripture for this goal</span><span class="resource-sub">View the Bible passage connected to this goal.</span></span><span class="chev">›</span></button>
+          <button class="resource-row" onclick="openModal('notesModal')"><span class="resource-icon">📝</span><span><span class="resource-title">My Action Plan</span><span class="resource-sub">Review your action steps and saved notes.</span></span><span class="chev">›</span></button>
+          <button class="resource-row" onclick="openModal('reminderModal')"><span class="resource-icon">⏰</span><span><span class="resource-title">Tracking Reminder</span><span class="resource-sub">Choose reminder days and time.</span></span><span class="chev">›</span></button>
+          <button class="resource-row" onclick="cancelCurrentGoal()"><span class="resource-icon">✕</span><span><span class="resource-title">Cancel Goal</span><span class="resource-sub">Stop tracking this active goal.</span></span><span class="chev">›</span></button>
+        </div>
+      </section>
+
+      <section class="screen" id="pastScreen">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Past Goals</h2>
+            <p class="section-note">Review what you have worked on and start again.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="section-title" style="font-size:15px;">Goals by Category</h3>
+          <div id="categoryBars"></div>
+        </div>
+
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Goal History</h2>
+            <p class="section-note">Tap a goal to review details.</p>
+          </div>
+        </div>
+        <div class="chip-row" id="historyFilterRow"></div>
+        <div id="historyList" style="margin-top:12px;"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-screen="dashboardScreen" onclick="goTo('dashboardScreen')"><span>⌂</span><span>Goals</span></button>
+      <button class="nav-btn" data-screen="focusScreen" onclick="goTo('focusScreen')"><span>＋</span><span>New</span></button>
+      <button class="nav-btn" data-screen="trackScreen" onclick="goTo('trackScreen')"><span>✓</span><span>Track</span></button>
+      <button class="nav-btn" data-screen="pastScreen" onclick="goTo('pastScreen')"><span>↻</span><span>Past</span></button>
+    </nav>
+  </div>
+
+  <div class="modal-backdrop" id="scriptureModal">
+    <div class="sheet">
+      <div class="sheet-head"><div><div class="sheet-title">Scripture for this goal</div><div class="sheet-sub">King James Version</div></div><button class="close-btn" onclick="closeModals()">×</button></div>
+      <div class="sheet-body" id="scriptureContent"></div>
+      <div class="sheet-actions"><button class="btn full" onclick="closeModals()">Close</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="reminderModal">
+    <div class="sheet">
+      <div class="sheet-head"><div><div class="sheet-title">Add reminder</div><div class="sheet-sub">Choose reminder days and time</div></div><button class="close-btn" onclick="closeModals()">×</button></div>
+      <div class="sheet-body">
+        <label>Select the days for the reminder</label>
+        <div class="chip-row" id="reminderDays"></div>
+        <div class="desktop-grid" style="margin-top:14px;">
+          <div class="form-group"><label>Hour</label><select class="select"><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+          <div class="form-group"><label>Minute</label><select class="select"><option>00</option><option>15</option><option>30</option><option>45</option></select></div>
+        </div>
+        <div class="form-group"><label>AM/PM</label><select class="select"><option>AM</option><option>PM</option></select></div>
+        <p class="section-note">In WordPress, reminders would be handled by the backend using WordPress cron or Action Scheduler.</p>
+      </div>
+      <div class="sheet-actions"><button class="btn full" onclick="closeModals()">Cancel</button><button class="btn primary full" onclick="saveReminder()">Save reminder</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="notesModal">
+    <div class="sheet">
+      <div class="sheet-head"><div><div class="sheet-title">Goal Notes</div><div class="sheet-sub">Action plan and saved notes</div></div><button class="close-btn" onclick="closeModals()">×</button></div>
+      <div class="sheet-body" id="notesContent"></div>
+      <div class="sheet-actions"><button class="btn full" onclick="closeModals()">Close</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="reflectionModal">
+    <div class="sheet">
+      <div class="sheet-head"><div><div class="sheet-title">Goal Reflection</div><div class="sheet-sub">Complete this goal cycle</div></div><button class="close-btn" onclick="closeModals()">×</button></div>
+      <div class="sheet-body">
+        <h3 class="section-title">Take a minute to recognize this accomplishment.</h3>
+        <p class="section-note" id="reflectionGoalSummary"></p>
+        <div class="stars">
+          <button class="star-btn" onclick="selectRating(1)">★<br>Not Well</button>
+          <button class="star-btn" onclick="selectRating(2)">★★<br>Okay</button>
+          <button class="star-btn" onclick="selectRating(3)">★★★<br>Great</button>
+        </div>
+        <div class="form-group">
+          <label for="reflectionText">What did you learn?</label>
+          <textarea class="textarea" id="reflectionText" placeholder="Reflect on your goal achievement or setback..."></textarea>
+        </div>
+        <p class="section-note" id="reflectionError" style="color:var(--danger);display:none;">Please select a rating and write a reflection before submitting.</p>
+      </div>
+      <div class="sheet-actions"><button class="btn full" onclick="closeModals()">Back</button><button class="btn primary full" onclick="submitReflection()">Submit</button></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const categories = [
+      { id: 'word', name: 'The Word', icon: '📖', desc: 'Scripture reading, memorization, reflection, and application.', badge: 'word' },
+      { id: 'personal', name: 'Personal Engagement', icon: '🙏', desc: 'Prayer, forgiveness, repentance, deliverance, and reflection.', badge: 'personal' },
+      { id: 'strong', name: 'CBH Strong', icon: '💪', desc: 'Strength, nutrition, sleep, movement, and endurance.', badge: 'strong' },
+      { id: 'group', name: 'Group Engagement', icon: '🤝', desc: 'Prayer circles, healing events, encouragement, and support.', badge: 'group' }
+    ];
+
+    const libraryGoals = [
+      { id: 1, categoryId: 'strong', title: 'Build healthy habits to build my body as a temple of the Holy Spirit', focus: 'Strengthen My Body to Serve God', scriptureRef: '1 Cor. 6:19–20', scriptureText: 'Do you not know that your bodies are temples of the Holy Spirit, who is in you, whom ye have of God, and ye are not your own?', recommended: true },
+      { id: 2, categoryId: 'strong', title: 'Go on a walk or hike', focus: 'Do Cardio Exercise', scriptureRef: '', scriptureText: '', recommended: true },
+      { id: 3, categoryId: 'personal', title: 'Practice deliverance prayer on my health condition', focus: 'Practice Deliverance Prayer', scriptureRef: '', scriptureText: '', recommended: true },
+      { id: 4, categoryId: 'word', title: 'Read a Short Book of the Bible', focus: 'Read a Short Book of the Bible', scriptureRef: '', scriptureText: '', recommended: true },
+      { id: 5, categoryId: 'group', title: 'Attend my Prayer Circle meeting', focus: 'Virtual Healing Events or Group Prayer', scriptureRef: '', scriptureText: '', recommended: false },
+      { id: 6, categoryId: 'personal', title: 'Remove unforgiveness as a barrier to healing', focus: 'Practice Forgiveness of Another Person', scriptureRef: '', scriptureText: '', recommended: false }
+    ];
+
+    let selectedCategoryId = 'strong';
+    let selectedLibraryGoalId = 1;
+    let selectedTrackingDay = null;
+    let activeGoalId = null;
+    let rating = null;
+    let historyFilter = 'all';
+
+    const state = {
+      activeGoals: [],
+      pastGoals: [
+        { id: 100, title: 'Practice deliverance prayer on negative mental or emotional patterns', categoryId: 'personal', focus: 'Practice Deliverance Prayer', completed: 5, target: 5, rating: 3, reflection: 'I learned that consistency helped me stay focused during the week.' },
+        { id: 101, title: 'Listen to an audio version of a short Bible book', categoryId: 'word', focus: 'Read a Short Book of the Bible', completed: 4, target: 4, rating: 2, reflection: 'Audio helped me stay connected while driving.' }
+      ],
+      dayNotes: {},
+      reminderDays: new Set(['Mon', 'Wed', 'Fri'])
+    };
+
+    function categoryById(id) { return categories.find(c => c.id === id) || categories[0]; }
+    function goalById(id) { return libraryGoals.find(g => g.id === Number(id)); }
+
+    function goTo(screenId) {
+      document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.screen === screenId));
+      if (screenId === 'trackScreen') renderTracking();
+      if (screenId === 'pastScreen') renderPastGoals();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function renderAll() {
+      renderCategories();
+      renderRecommended();
+      renderCurrentGoals();
+      renderReminderDays();
+      renderPastGoals();
+      updateHeader();
+    }
+
+    function updateHeader() {
+      document.getElementById('headerStatus').textContent = `${state.activeGoals.length} current goal${state.activeGoals.length === 1 ? '' : 's'}`;
+    }
+
+    function renderCategories() {
+      const grid = document.getElementById('categoryGrid');
+      grid.innerHTML = categories.map(cat => `
+        <button class="category-card ${selectedCategoryId === cat.id ? 'selected' : ''}" onclick="selectCategory('${cat.id}')">
+          <span class="cat-icon">${cat.icon}</span>
+          <span class="cat-content"><span class="cat-title">${cat.name}</span><span class="cat-desc">${cat.desc}</span></span>
+        </button>
+      `).join('');
+    }
+
+    function selectCategory(id) {
+      selectedCategoryId = id;
+      const firstGoal = libraryGoals.find(g => g.categoryId === id);
+      if (firstGoal) selectedLibraryGoalId = firstGoal.id;
+      renderCategories();
+    }
+
+    function goToGoalSetup() {
+      renderGoalSetup();
+      goTo('setupScreen');
+    }
+
+    function renderGoalSetup() {
+      const cat = categoryById(selectedCategoryId);
+      const options = libraryGoals.filter(g => g.categoryId === selectedCategoryId);
+      const select = document.getElementById('goalSelect');
+      select.innerHTML = options.map(g => `<option value="${g.id}">${g.title}</option>`).join('') + '<option value="custom">Add your own goal</option>';
+      if (!options.some(g => g.id === selectedLibraryGoalId) && options[0]) selectedLibraryGoalId = options[0].id;
+      select.value = selectedLibraryGoalId;
+      document.getElementById('setupCategoryLabel').textContent = `${cat.name} — ${cat.desc}`;
+      syncGoalFromSelect();
+    }
+
+    function syncGoalFromSelect() {
+      const value = document.getElementById('goalSelect').value;
+      const goalText = document.getElementById('goalText');
+      if (value === 'custom') {
+        selectedLibraryGoalId = null;
+        goalText.value = '';
+        goalText.placeholder = 'Add your own goal...';
+      } else {
+        selectedLibraryGoalId = Number(value);
+        goalText.value = goalById(value).title;
+      }
+    }
+
+    function createGoal() {
+      const title = document.getElementById('goalText').value.trim();
+      if (!title) return showToast('Please enter a goal statement.');
+      const libraryGoal = goalById(selectedLibraryGoalId) || {};
+      const target = Number(document.getElementById('daysPerWeek').value) * Number(document.getElementById('timesPerDay').value);
+      const newGoal = {
+        id: Date.now(),
+        title,
+        categoryId: selectedCategoryId,
+        focus: libraryGoal.focus || 'Custom Goal',
+        schedule: document.getElementById('scheduleText').value.trim() || 'Not set',
+        target,
+        completed: 0,
+        days: Array.from({ length: 7 }, (_, i) => ({ done: false, note: '', future: i > 4 })),
+        actionPlan: document.getElementById('actionPlan').value.trim(),
+        scriptureRef: libraryGoal.scriptureRef || '',
+        scriptureText: libraryGoal.scriptureText || ''
+      };
+      state.activeGoals.unshift(newGoal);
+      activeGoalId = newGoal.id;
+      showToast('Goal created successfully.');
+      renderAll();
+      renderTracking();
+      goTo('trackScreen');
+    }
+
+    function renderCurrentGoals() {
+      const target = document.getElementById('currentGoalsList');
+      if (!state.activeGoals.length) {
+        target.innerHTML = `<div class="card"><div class="goal-title">No active goals yet</div><div class="goal-meta">Start a new goal to begin tracking this week.</div><div class="btn-row" style="margin-top:12px;"><button class="btn primary full" onclick="goTo('focusScreen')">Start New Goal</button></div></div>`;
+        return;
+      }
+      target.innerHTML = state.activeGoals.map(goal => goalCardHtml(goal, true)).join('');
+    }
+
+    function renderRecommended() {
+      const target = document.getElementById('recommendedList');
+      target.innerHTML = libraryGoals.filter(g => g.recommended).map(goal => {
+        const cat = categoryById(goal.categoryId);
+        return `<div class="card goal-card"><div class="goal-top"><div><div class="goal-title">${goal.title}</div><div class="goal-meta">${goal.focus}</div></div><span class="badge ${cat.badge}">${cat.name}</span></div><button class="btn secondary full" onclick="startRecommended(${goal.id})">Use this goal</button></div>`;
+      }).join('');
+    }
+
+    function startRecommended(id) {
+      const goal = goalById(id);
+      selectedCategoryId = goal.categoryId;
+      selectedLibraryGoalId = goal.id;
+      renderGoalSetup();
+      goTo('setupScreen');
+    }
+
+    function goalCardHtml(goal, active) {
+      const cat = categoryById(goal.categoryId);
+      const pct = Math.min(100, Math.round((goal.completed / goal.target) * 100));
+      return `<div class="card goal-card"><div class="goal-top"><div><div class="goal-title">${goal.title}</div><div class="goal-meta">${cat.name} • ${goal.focus}<br>Schedule: ${goal.schedule || '—'}</div></div><span class="badge ${cat.badge}">${cat.name}</span></div><div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><div class="progress-text">${goal.completed}/${goal.target}</div></div>${active ? `<div class="btn-row"><button class="btn primary full" onclick="trackGoal(${goal.id})">Track</button></div>` : ''}</div>`;
+    }
+
+    function trackGoal(id) {
+      activeGoalId = id;
+      selectedTrackingDay = null;
+      renderTracking();
+      goTo('trackScreen');
+    }
+
+    function currentGoal() {
+      if (!state.activeGoals.length) return null;
+      if (!activeGoalId) activeGoalId = state.activeGoals[0].id;
+      return state.activeGoals.find(g => g.id === activeGoalId) || state.activeGoals[0];
+    }
+
+    function renderTracking() {
+      const goal = currentGoal();
+      if (!goal) {
+        document.getElementById('trackingGoalTitle').textContent = 'No active goal selected.';
+        document.getElementById('dayGrid').innerHTML = `<div class="card"><div class="goal-title">No active goal</div><div class="goal-meta">Start a new goal first.</div><button class="btn primary full" style="margin-top:12px;" onclick="goTo('focusScreen')">Start New Goal</button></div>`;
+        document.getElementById('trackProgressFill').style.width = '0%';
+        document.getElementById('trackProgressText').textContent = '0/0';
+        return;
+      }
+      document.getElementById('trackingGoalTitle').textContent = goal.title;
+      goal.completed = goal.days.filter(day => day.done).length;
+      const pct = Math.min(100, Math.round((goal.completed / goal.target) * 100));
+      document.getElementById('trackProgressFill').style.width = `${pct}%`;
+      document.getElementById('trackProgressText').textContent = `${goal.completed}/${goal.target}`;
+      const names = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      document.getElementById('dayGrid').innerHTML = goal.days.map((day, i) => `<button class="day-card ${day.done ? 'done' : ''} ${day.future ? 'disabled' : ''} ${selectedTrackingDay === i ? 'selected' : ''}" onclick="toggleDay(${i})"><div class="day-name">${names[i]}</div><div class="day-status">${day.future ? 'Future' : day.done ? 'Checked' : 'Tap to check'}</div>${day.done ? '<div class="checkmark">✓</div>' : ''}</button>`).join('');
+      document.getElementById('reflectButton').style.display = goal.completed >= goal.target ? 'inline-flex' : 'none';
+      renderModalContent();
+    }
+
+    function toggleDay(index) {
+      const goal = currentGoal();
+      selectedTrackingDay = index;
+      goal.days[index].done = !goal.days[index].done;
+      document.getElementById('dayNote').value = goal.days[index].note || '';
+      renderTracking();
+    }
+
+    function saveDayNote() {
+      const goal = currentGoal();
+      if (!goal || selectedTrackingDay === null) return showToast('Select a day first.');
+      goal.days[selectedTrackingDay].note = document.getElementById('dayNote').value.trim();
+      showToast('Note saved.');
+      renderModalContent();
+    }
+
+    function cancelCurrentGoal() {
+      const goal = currentGoal();
+      if (!goal) return;
+      state.activeGoals = state.activeGoals.filter(g => g.id !== goal.id);
+      activeGoalId = state.activeGoals[0]?.id || null;
+      showToast('Goal canceled.');
+      renderAll();
+      goTo('dashboardScreen');
+    }
+
+    function renderModalContent() {
+      const goal = currentGoal();
+      if (!goal) return;
+      document.getElementById('scriptureContent').innerHTML = goal.scriptureRef ? `<div class="goal-title">${goal.scriptureRef}</div><p class="section-note" style="font-size:15px;margin-top:10px;">${goal.scriptureText || 'Scripture text has not been added yet.'}</p>` : `<p class="section-note">No scripture passage is connected to this goal yet.</p>`;
+      const notes = goal.days.map((day, i) => day.note ? `<li><strong>${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][i]}:</strong> ${day.note}</li>` : '').join('');
+      document.getElementById('notesContent').innerHTML = `<div class="goal-title">Action Plan</div><p class="section-note" style="margin:8px 0 14px;">${goal.actionPlan || 'No action plan entered.'}</p><div class="goal-title">Saved Notes</div><ul class="section-note" style="padding-left:18px;margin-top:8px;">${notes || '<li>No notes saved yet.</li>'}</ul>`;
+    }
+
+    function renderReminderDays() {
+      const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      document.getElementById('reminderDays').innerHTML = days.map(day => `<button class="chip ${state.reminderDays.has(day) ? 'selected' : ''}" onclick="toggleReminderDay('${day}')">${day}</button>`).join('');
+    }
+
+    function toggleReminderDay(day) {
+      state.reminderDays.has(day) ? state.reminderDays.delete(day) : state.reminderDays.add(day);
+      renderReminderDays();
+    }
+
+    function saveReminder() {
+      closeModals();
+      showToast('Reminder saved.');
+    }
+
+    function openReflection() {
+      const goal = currentGoal();
+      if (!goal) return;
+      document.getElementById('reflectionGoalSummary').textContent = `${goal.title} — ${goal.completed} of ${goal.target}`;
+      openModal('reflectionModal');
+    }
+
+    function selectRating(value) {
+      rating = value;
+      document.querySelectorAll('.star-btn').forEach((btn, index) => btn.classList.toggle('selected', index + 1 === value));
+    }
+
+    function submitReflection() {
+      const text = document.getElementById('reflectionText').value.trim();
+      const goal = currentGoal();
+      if (!rating || !text || !goal) {
+        document.getElementById('reflectionError').style.display = 'block';
+        return;
+      }
+      state.pastGoals.unshift({ ...goal, rating, reflection: text });
+      state.activeGoals = state.activeGoals.filter(g => g.id !== goal.id);
+      activeGoalId = state.activeGoals[0]?.id || null;
+      rating = null;
+      document.getElementById('reflectionText').value = '';
+      document.querySelectorAll('.star-btn').forEach(btn => btn.classList.remove('selected'));
+      closeModals();
+      showToast('Goal completed! Reflection saved.');
+      renderAll();
+      goTo('dashboardScreen');
+    }
+
+    function renderPastGoals() {
+      renderHistoryFilters();
+      renderCategoryBars();
+      const list = document.getElementById('historyList');
+      const goals = historyFilter === 'all' ? state.pastGoals : state.pastGoals.filter(g => g.categoryId === historyFilter);
+      list.innerHTML = goals.length ? goals.map(goal => {
+        const cat = categoryById(goal.categoryId);
+        return `<div class="card history-card" onclick="this.classList.toggle('open')"><div class="goal-top"><div><div class="goal-title">${goal.title}</div><div class="goal-meta">${cat.name} • ${goal.focus}</div></div><span class="badge done">Completed</span></div><div class="history-detail"><strong>Reflection:</strong> ${goal.reflection || 'No reflection saved.'}<div class="btn-row" style="margin-top:10px;"><button class="btn secondary" onclick="event.stopPropagation(); restartPastGoal(${goal.id})">Start Again</button></div></div></div>`;
+      }).join('') : `<div class="card"><div class="goal-title">No past goals yet</div><div class="goal-meta">Completed goals will appear here.</div></div>`;
+    }
+
+    function renderHistoryFilters() {
+      const row = document.getElementById('historyFilterRow');
+      row.innerHTML = `<button class="chip ${historyFilter === 'all' ? 'selected' : ''}" onclick="setHistoryFilter('all')">All</button>` + categories.map(cat => `<button class="chip ${historyFilter === cat.id ? 'selected' : ''}" onclick="setHistoryFilter('${cat.id}')">${cat.name}</button>`).join('');
+    }
+
+    function setHistoryFilter(id) {
+      historyFilter = id;
+      renderPastGoals();
+    }
+
+    function renderCategoryBars() {
+      const counts = categories.map(cat => ({ ...cat, count: state.pastGoals.filter(g => g.categoryId === cat.id).length }));
+      const max = Math.max(1, ...counts.map(c => c.count));
+      document.getElementById('categoryBars').innerHTML = counts.map(cat => `<div class="bar-row"><span>${cat.name}</span><div class="bar-track"><div class="bar-fill" style="width:${(cat.count/max)*100}%"></div></div><span>${cat.count}</span></div>`).join('');
+    }
+
+    function restartPastGoal(id) {
+      const past = state.pastGoals.find(g => g.id === id);
+      if (!past) return;
+      selectedCategoryId = past.categoryId;
+      document.getElementById('goalText').value = past.title;
+      goToGoalSetup();
+    }
+
+    function openModal(id) {
+      renderModalContent();
+      document.getElementById(id).classList.add('show');
+    }
+
+    function closeModals() {
+      document.querySelectorAll('.modal-backdrop').forEach(modal => modal.classList.remove('show'));
+      document.getElementById('reflectionError').style.display = 'none';
+    }
+
+    renderAll();
+  </script>
+</body>
+</html>

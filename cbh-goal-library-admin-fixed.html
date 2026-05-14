@@ -1,0 +1,1563 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CBH Goal Library Manager</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      color: #1a202c;
+      background: #f0f2f5;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .page-header-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #14375d;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .page-header-title i { font-size: 26px; }
+    .page-header-sub { font-size: 13px; color: #667085; margin-top: 3px; }
+    .page-header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eef5fb;
+      border: 1px solid #b5d4f4;
+      border-radius: 999px;
+      padding: 5px 13px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #185FA5;
+      margin-top: 4px;
+    }
+
+    .wrap {
+      display: flex;
+      border: 1px solid #d7e1ec;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 8px 32px rgba(20,55,93,.10);
+      min-height: 740px;
+    }
+
+    /* Sidebar */
+    .side {
+      width: 204px;
+      flex-shrink: 0;
+      background: #f8fafc;
+      border-right: 1px solid #d7e1ec;
+      display: flex;
+      flex-direction: column;
+    }
+    .side-logo {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid #d7e1ec;
+    }
+    .side-logo-name { font-size: 14px; font-weight: 700; color: #14375d; }
+    .side-logo-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+    .grp { padding: 14px 0 4px; }
+    .grp-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #94a3b8;
+      padding: 0 14px 6px;
+    }
+    .ni {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: #64748b;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      transition: background .12s, color .12s;
+    }
+    .ni:hover { background: #eef5fb; color: #14375d; }
+    .ni.on {
+      background: #eef5fb;
+      color: #185FA5;
+      border-left-color: #185FA5;
+      font-weight: 600;
+    }
+    .ni i { font-size: 16px; }
+    .ni .count {
+      margin-left: auto;
+      background: #185FA5;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 999px;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: #fff;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      border-bottom: 1px solid #e8eef5;
+      background: #fff;
+    }
+    .topbar h1 { font-size: 17px; font-weight: 700; color: #14375d; }
+    .btn-row { display: flex; gap: 8px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      border: 1px solid #d7e1ec;
+      background: #fff;
+      color: #334155;
+      cursor: pointer;
+      transition: background .12s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .btn:hover { background: #f4f8fc; }
+    .btn.pri { background: #14375d; color: #fff; border-color: #14375d; }
+    .btn.pri:hover { background: #0f2b49; }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #e8eef5;
+      background: #f8fafc;
+    }
+    .stat {
+      background: #fff;
+      border-radius: 10px;
+      padding: 11px 14px;
+      border: 1px solid #e8eef5;
+      cursor: pointer;
+      transition: border-color .12s;
+    }
+    .stat:hover { border-color: #b5d4f4; }
+    .stat.active-filter { border-color: #185FA5; background: #f0f7ff; }
+    .stat-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: #94a3b8;
+      margin-bottom: 4px;
+    }
+    .stat-val { font-size: 22px; font-weight: 700; }
+    .stat-val.navy  { color: #14375d; }
+    .stat-val.green { color: #3B6D11; }
+    .stat-val.muted { color: #94a3b8; }
+    .stat-val.blue  { color: #185FA5; }
+    .stat-val.amber { color: #854F0B; }
+
+    /* Filters */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 20px;
+      border-bottom: 1px solid #e8eef5;
+      align-items: center;
+      background: #fff;
+      flex-wrap: wrap;
+    }
+    .filter-bar input,
+    .filter-bar select {
+      padding: 7px 10px;
+      border-radius: 9px;
+      border: 1px solid #d7e1ec;
+      background: #fff;
+      color: #1a202c;
+      font-size: 13px;
+      font-family: inherit;
+      transition: border-color .12s;
+    }
+    .filter-bar input:focus,
+    .filter-bar select:focus { outline: none; border-color: #185FA5; }
+    .filter-bar input { flex: 1; min-width: 180px; max-width: 280px; }
+    .filter-bar select { min-width: 150px; }
+    .reset {
+      font-size: 12px;
+      color: #94a3b8;
+      text-decoration: underline;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .reset:hover { color: #14375d; }
+
+    /* Bulk bar */
+    .bulk-bar {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      background: #eef8ef;
+      border-bottom: 1px solid #c0dd97;
+      font-size: 12px;
+      color: #27500A;
+      font-weight: 600;
+    }
+    .bulk-bar.show { display: flex; }
+    .bulk-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid #3B6D11;
+      background: #fff;
+      color: #27500A;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .12s;
+    }
+    .bulk-btn:hover { background: #eef8ef; }
+    .bulk-btn.danger { border-color: #A32D2D; color: #A32D2D; }
+    .bulk-btn.danger:hover { background: #fff5f5; }
+
+    /* Table */
+    .tbl-container { flex: 1; overflow: auto; }
+    .tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .tbl thead { position: sticky; top: 0; z-index: 2; }
+    .tbl th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #64748b;
+      border-bottom: 1px solid #e8eef5;
+      background: #f8fafc;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tbl th:hover { background: #eef5fb; }
+    .tbl th .sort-icon { margin-left: 4px; opacity: .4; }
+    .tbl th.sorted .sort-icon { opacity: 1; color: #185FA5; }
+    .tbl td {
+      padding: 11px 12px;
+      border-bottom: 1px solid #f0f4f8;
+      vertical-align: middle;
+      color: #1a202c;
+    }
+    .tbl tr:last-child td { border-bottom: none; }
+    .tbl tbody tr:hover td { background: #f8fafc; }
+    .tbl tbody tr.editing td { background: #f0faf0; border-bottom: 1px solid #c0dd97; }
+    .tbl tbody tr.add-row td { background: #f0f8ff; border-bottom: 1px solid #b5d4f4; }
+
+    .goal-text { font-weight: 600; font-size: 13px; color: #1a202c; line-height: 1.4; }
+    .row-num   { color: #94a3b8; font-size: 11px; font-weight: 500; }
+
+    /* Badges */
+    .bdg {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .bw { background: #e6f1fb; color: #0c447c; }
+    .bp { background: #eeedfe; color: #3c3489; }
+    .bs { background: #eaf3de; color: #27500a; }
+    .bg { background: #faeeda; color: #633806; }
+
+    /* Status */
+    .sdot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+    .s-active   { background: #639922; }
+    .s-draft    { background: #94a3b8; }
+    .s-archived { background: #e2a03f; }
+
+    .scr-link { color: #185FA5; font-size: 12px; font-weight: 500; white-space: nowrap; }
+
+    /* Row actions */
+    .ra { display: flex; gap: 5px; align-items: center; }
+    .ib {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      border: 1px solid #e8eef5;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: #64748b;
+      flex-shrink: 0;
+      transition: background .12s, color .12s, border-color .12s;
+      position: relative;
+    }
+    .ib:hover { background: #f4f8fc; color: #14375d; border-color: #b5d4f4; }
+    .ib:hover::after {
+      content: attr(title);
+      position: absolute;
+      bottom: calc(100% + 5px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a202c;
+      color: #fff;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .ib.arch:hover { background: #fffbeb; color: #92400e; border-color: #fcd34d; }
+    .ib.del:hover  { background: #fff5f5; color: #a32d2d; border-color: #f09595; }
+    .ib.save {
+      width: auto; padding: 0 10px;
+      background: #3B6D11; color: #fff; border-color: #3B6D11;
+      font-size: 12px; font-weight: 600;
+    }
+    .ib.save:hover { background: #27500A; }
+    .ib.cancel-edit {
+      width: auto; padding: 0 10px;
+      background: #f4f8fc; color: #64748b;
+      font-size: 12px;
+    }
+
+    /* Inline edit */
+    .inline-input, .inline-select {
+      width: 100%;
+      padding: 5px 8px;
+      border-radius: 7px;
+      border: 1px solid #185FA5;
+      background: #fff;
+      color: #1a202c;
+      font-size: 12px;
+      font-family: inherit;
+    }
+    .inline-input:focus, .inline-select:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(24,95,165,.2);
+    }
+
+    /* Footer */
+    .footer-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 20px;
+      border-top: 1px solid #e8eef5;
+      background: #f8fafc;
+      font-size: 12px;
+      color: #64748b;
+    }
+    .pbs { display: flex; gap: 4px; }
+    .pb {
+      width: 26px; height: 26px;
+      border-radius: 8px;
+      border: 1px solid #e8eef5;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      color: #334155;
+      transition: background .12s;
+      /* NOTE: Pagination buttons are visual placeholders only.
+         Full pagination is not yet implemented — all goals render in one list.
+         Connect to real data paging when integrating with WordPress/REST API. */
+    }
+    .pb:hover { background: #eef5fb; }
+    .pb.on { background: #14375d; color: #fff; border-color: #14375d; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #14375d;
+      color: #fff;
+      padding: 11px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      box-shadow: 0 8px 24px rgba(20,55,93,.24);
+      display: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+      animation: slideUp .2s ease;
+    }
+    .toast.show { display: flex; }
+    .toast.success { background: #3B6D11; }
+    .toast.warning { background: #92400e; }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      padding: 48px 20px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+    .empty-state i { font-size: 40px; display: block; margin-bottom: 12px; }
+    .empty-state strong { display: block; margin-bottom: 4px; color: #64748b; font-size: 15px; }
+
+    /* View switching */
+    .view { display: none; flex-direction: column; flex: 1; min-width: 0; }
+    .view.active { display: flex; }
+
+    /* Gamification page */
+    .gam-body { padding: 22px 24px; flex: 1; overflow: auto; }
+
+    .master-toggle-card {
+      border: 2px solid #d7e1ec;
+      border-radius: 14px;
+      padding: 20px 22px;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      background: #f8fafc;
+      transition: border-color .2s, background .2s;
+    }
+    .master-toggle-card.enabled {
+      border-color: #3B6D11;
+      background: #f0faf0;
+    }
+    .master-toggle-label { font-size: 16px; font-weight: 700; color: #14375d; margin-bottom: 4px; }
+    .master-toggle-sub   { font-size: 13px; color: #64748b; }
+    .master-toggle-sub.enabled { color: #3B6D11; font-weight: 600; }
+
+    .big-toggle {
+      width: 52px; height: 28px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: background .2s;
+      background: #cbd5e1;
+    }
+    .big-toggle.on { background: #3B6D11; }
+    .big-toggle::after {
+      content: "";
+      position: absolute;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #fff;
+      top: 4px;
+      left: 4px;
+      transition: left .2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,.18);
+    }
+    .big-toggle.on::after { left: 28px; }
+
+    .disabled-overlay-note {
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-size: 13px;
+      color: #92400e;
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .disabled-overlay-note i { font-size: 18px; flex-shrink: 0; }
+    .disabled-overlay-note.hidden { display: none; }
+
+    .gam-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+    .gam-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-bottom: 22px; }
+
+    .gam-card {
+      border: 1px solid #e8eef5;
+      border-radius: 14px;
+      background: #fff;
+      overflow: hidden;
+      transition: opacity .2s;
+    }
+    .gam-card.dimmed { opacity: .45; pointer-events: none; }
+    .gam-card-head {
+      padding: 13px 16px;
+      border-bottom: 1px solid #e8eef5;
+      background: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .gam-card-head-icon {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .icon-blue   { background: #e6f1fb; color: #185FA5; }
+    .icon-green  { background: #eaf3de; color: #3B6D11; }
+    .icon-amber  { background: #faeeda; color: #854F0B; }
+    .icon-purple { background: #eeedfe; color: #4338ca; }
+    .icon-teal   { background: #e0f2fe; color: #0369a1; }
+    .icon-coral  { background: #fff1f0; color: #be123c; }
+
+    .gam-card-title { font-size: 14px; font-weight: 700; color: #14375d; }
+    .gam-card-sub   { font-size: 11px; color: #94a3b8; margin-top: 1px; }
+    .gam-card-body  { padding: 14px 16px; }
+
+    .pts-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid #f0f4f8;
+      font-size: 13px;
+      color: #334155;
+      gap: 12px;
+    }
+    .pts-row:last-child { border-bottom: none; }
+    .pts-row-label { flex: 1; }
+    .pts-row-label small { display: block; font-size: 11px; color: #94a3b8; margin-top: 1px; }
+    .pts-input {
+      width: 68px;
+      text-align: center;
+      border: 1px solid #d7e1ec;
+      border-radius: 8px;
+      padding: 5px 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #14375d;
+      background: #f8fafc;
+      font-family: inherit;
+    }
+    .pts-input:focus { outline: none; border-color: #185FA5; background: #fff; }
+    .pts-suffix { font-size: 11px; color: #94a3b8; width: 28px; text-align: left; }
+
+    .multiplier-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid #f0f4f8;
+      font-size: 13px;
+      gap: 10px;
+    }
+    .multiplier-row:last-child { border-bottom: none; }
+    .mult-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .toggle-row-gam {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f4f8;
+      font-size: 13px;
+      gap: 12px;
+    }
+    .toggle-row-gam:last-child { border-bottom: none; }
+    .toggle-row-gam-label small { display: block; font-size: 11px; color: #94a3b8; margin-top: 1px; }
+    .sm-toggle {
+      width: 36px; height: 20px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: background .15s;
+      background: #cbd5e1;
+    }
+    .sm-toggle.on { background: #3B6D11; }
+    .sm-toggle::after {
+      content: "";
+      position: absolute;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px; left: 3px;
+      transition: left .15s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.15);
+    }
+    .sm-toggle.on::after { left: 19px; }
+
+    .badge-word     { background: #e6f1fb; color: #0c447c; }
+    .badge-personal { background: #eeedfe; color: #3c3489; }
+    .badge-strong   { background: #eaf3de; color: #27500a; }
+    .badge-group    { background: #faeeda; color: #633806; }
+
+    .pts-preview {
+      background: linear-gradient(135deg, #14375d, #185FA5);
+      border-radius: 14px;
+      padding: 20px 22px;
+      color: #fff;
+      margin-bottom: 22px;
+    }
+    .pts-preview-title { font-size: 13px; font-weight: 700; opacity: .7; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 14px; }
+    .pts-preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .pts-preview-item { text-align: center; }
+    .pts-preview-val { font-size: 26px; font-weight: 800; }
+    .pts-preview-lbl { font-size: 11px; opacity: .7; margin-top: 2px; }
+
+    .gam-save-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      border-top: 1px solid #e8eef5;
+      background: #f8fafc;
+    }
+    .gam-save-note { font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px; }
+  </style>
+</head>
+<body>
+
+  <div class="page-header">
+    <div>
+      <div class="page-header-title">
+        <i class="ti ti-list-check"></i>
+        CBH Goal Library Manager
+      </div>
+      <div class="page-header-sub">Add, edit, and manage all goals across every category and focus area.</div>
+    </div>
+    <div>
+      <div class="page-header-badge">
+        <i class="ti ti-shield-check"></i>
+        WordPress Plugin — Admin View
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <!-- SIDEBAR -->
+    <div class="side">
+      <div class="side-logo">
+        <div class="side-logo-name">CBH Admin</div>
+        <div class="side-logo-sub">Goal Library Manager</div>
+      </div>
+      <div class="grp">
+        <div class="grp-lbl">Library</div>
+        <div class="ni on" id="nav-all" onclick="switchNav(this,'goals');filterCat('')"><i class="ti ti-list-check"></i> All Goals <span class="count" id="nav-total">0</span></div>
+        <div class="ni" id="nav-word" onclick="switchNav(this,'goals');filterCat('The Word')"><i class="ti ti-book"></i> The Word</div>
+        <div class="ni" id="nav-personal" onclick="switchNav(this,'goals');filterCat('Personal Engagement')"><i class="ti ti-heart"></i> Personal Engagement</div>
+        <div class="ni" id="nav-strong" onclick="switchNav(this,'goals');filterCat('CBH Strong')"><i class="ti ti-run"></i> CBH Strong</div>
+        <div class="ni" id="nav-group" onclick="switchNav(this,'goals');filterCat('Group Engagement')"><i class="ti ti-users"></i> Group Engagement</div>
+      </div>
+      <div class="grp">
+        <div class="grp-lbl">Tools</div>
+        <div class="ni" onclick="switchNav(this,'bulk')"><i class="ti ti-upload"></i> Bulk Upload</div>
+        <div class="ni" onclick="switchNav(this,'recommended')"><i class="ti ti-star"></i> Recommended Goals</div>
+        <div class="ni" id="nav-gamification" onclick="switchNav(this,'gamification')"><i class="ti ti-trophy"></i> Points &amp; Gamification</div>
+      </div>
+      <div class="grp">
+        <div class="grp-lbl">System</div>
+        <div class="ni"><i class="ti ti-settings"></i> Settings</div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+    <!-- GOALS VIEW -->
+    <div class="view active" id="view-goals">
+
+      <div class="topbar">
+        <h1>All Goals</h1>
+        <div class="btn-row">
+          <button class="btn"><i class="ti ti-upload"></i> Bulk Upload</button>
+          <button class="btn"><i class="ti ti-download"></i> Export CSV</button>
+          <button class="btn pri" onclick="toggleAddRow()"><i class="ti ti-plus"></i> Add Goal</button>
+        </div>
+      </div>
+
+      <!-- Stats (clickable to filter by status) -->
+      <div class="stats">
+        <div class="stat" id="stat-all" onclick="filterStatus('')">
+          <div class="stat-lbl">Total Goals</div>
+          <div class="stat-val navy" id="s-total">0</div>
+        </div>
+        <div class="stat" id="stat-active" onclick="filterStatus('active')">
+          <div class="stat-lbl">Active</div>
+          <div class="stat-val green" id="s-active">0</div>
+        </div>
+        <div class="stat" id="stat-draft" onclick="filterStatus('draft')">
+          <div class="stat-lbl">Draft</div>
+          <div class="stat-val muted" id="s-draft">0</div>
+        </div>
+        <div class="stat" id="stat-archived" onclick="filterStatus('archived')">
+          <div class="stat-lbl">Archived</div>
+          <div class="stat-val amber" id="s-archived">0</div>
+        </div>
+        <div class="stat" id="stat-scr">
+          <div class="stat-lbl">With Scripture</div>
+          <div class="stat-val blue" id="s-scr">0</div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-bar">
+        <input type="text" placeholder="Search goals…" id="search-input" oninput="applyFilters()" />
+        <select id="cat-filter" onchange="applyFilters()">
+          <option value="">All Categories</option>
+          <option>The Word</option>
+          <option>Personal Engagement</option>
+          <option>CBH Strong</option>
+          <option>Group Engagement</option>
+        </select>
+        <select id="status-filter" onchange="applyFilters()">
+          <option value="">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="draft">Draft</option>
+          <option value="archived">Archived</option>
+        </select>
+        <!-- FIX 1: Focus area filter is now dynamically generated from goal data -->
+        <select id="focus-filter" onchange="applyFilters()">
+          <option value="">All Focus Areas</option>
+        </select>
+        <span class="reset" onclick="resetFilters()">Reset</span>
+      </div>
+
+      <!-- Bulk bar -->
+      <div class="bulk-bar" id="bulk-bar">
+        <i class="ti ti-checkbox"></i>
+        <span id="bulk-count">0 goals selected</span>
+        <button class="bulk-btn" onclick="bulkActivate()">Set Active</button>
+        <button class="bulk-btn" onclick="bulkDraft()">Set Draft</button>
+        <button class="bulk-btn danger" onclick="bulkArchive()"><i class="ti ti-archive"></i> Archive Selected</button>
+        <span class="reset" onclick="clearSelection()" style="color:#27500a;">Clear selection</span>
+      </div>
+
+      <!-- Table -->
+      <div class="tbl-container">
+        <table class="tbl" id="goals-table">
+          <thead>
+            <tr>
+              <th style="width:24px;"><input type="checkbox" id="check-all" onchange="toggleAll(this)" /></th>
+              <th style="width:40px;" onclick="sortBy('id')"># <span class="sort-icon ti ti-selector"></span></th>
+              <th onclick="sortBy('goal')">Goal <span class="sort-icon ti ti-selector"></span></th>
+              <th style="width:110px;" onclick="sortBy('cat')">Category <span class="sort-icon ti ti-selector"></span></th>
+              <th style="width:170px;" onclick="sortBy('focus')">Focus Area <span class="sort-icon ti ti-selector"></span></th>
+              <th style="width:110px;">Scripture</th>
+              <th style="width:88px;" onclick="sortBy('status')">Status <span class="sort-icon ti ti-selector"></span></th>
+              <th style="width:140px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="goals-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Footer — pagination is visual only; wire to real data paging when integrating with WordPress/REST API -->
+      <div class="footer-bar">
+        <span id="footer-count">Loading…</span>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <select style="font-size:12px;border:1px solid #e8eef5;border-radius:7px;padding:3px 7px;background:#fff;color:#334155;font-family:inherit;">
+            <option>50 / page</option>
+            <option>100 / page</option>
+            <option>All</option>
+          </select>
+          <div class="pbs">
+            <div class="pb"><i class="ti ti-chevron-left" style="font-size:11px;"></i></div>
+            <div class="pb on">1</div>
+            <div class="pb">2</div>
+            <div class="pb">3</div>
+            <div class="pb"><i class="ti ti-chevron-right" style="font-size:11px;"></i></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /view-goals -->
+
+    <!-- GAMIFICATION VIEW -->
+    <div class="view" id="view-gamification">
+
+      <div class="topbar">
+        <h1>Points &amp; Gamification</h1>
+        <div class="btn-row">
+          <button class="btn" onclick="resetGamification()"><i class="ti ti-refresh"></i> Reset Defaults</button>
+          <button class="btn pri" onclick="saveGamification()"><i class="ti ti-device-floppy"></i> Save Settings</button>
+        </div>
+      </div>
+
+      <div class="gam-body">
+
+        <!-- Master toggle -->
+        <div class="master-toggle-card" id="master-card">
+          <div>
+            <div class="master-toggle-label" id="master-label">Gamification — Currently Disabled</div>
+            <div class="master-toggle-sub" id="master-sub">Toggle on when ready to award points to participants. No points are earned while this is off.</div>
+          </div>
+          <button class="big-toggle" id="master-toggle" onclick="toggleMaster()" aria-label="Toggle gamification on or off"></button>
+        </div>
+
+        <!-- Disabled notice -->
+        <div class="disabled-overlay-note" id="disabled-note">
+          <i class="ti ti-lock"></i>
+          <span>Gamification is <strong>off</strong>. Configure values below and save — they activate the moment you turn the toggle on. No points are awarded to participants until then.</span>
+        </div>
+
+        <!-- Live preview -->
+        <div class="pts-preview">
+          <div class="pts-preview-title"><i class="ti ti-calculator" style="margin-right:6px;"></i>Live Point Preview — what a participant earns in one fully completed week</div>
+          <div class="pts-preview-grid">
+            <div class="pts-preview-item">
+              <div class="pts-preview-val" id="prev-create">10</div>
+              <div class="pts-preview-lbl">Goal created</div>
+            </div>
+            <div class="pts-preview-item">
+              <div class="pts-preview-val" id="prev-checkin">70</div>
+              <div class="pts-preview-lbl">7 daily check-ins</div>
+            </div>
+            <div class="pts-preview-item">
+              <div class="pts-preview-val" id="prev-complete">50</div>
+              <div class="pts-preview-lbl">Goal completed</div>
+            </div>
+            <div class="pts-preview-item">
+              <div class="pts-preview-val" id="prev-total">130</div>
+              <div class="pts-preview-lbl">Week total</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 1: Goal actions + Streaks -->
+        <div class="gam-grid">
+
+          <div class="gam-card" id="card-actions">
+            <div class="gam-card-head">
+              <div class="gam-card-head-icon icon-blue"><i class="ti ti-target"></i></div>
+              <div>
+                <div class="gam-card-title">Goal Actions</div>
+                <div class="gam-card-sub">Points awarded when a participant takes action on a goal</div>
+              </div>
+            </div>
+            <div class="gam-card-body">
+              <div class="pts-row">
+                <div class="pts-row-label">Goal created<small>Any new goal set by the participant</small></div>
+                <input class="pts-input" id="pts-created" type="number" min="0" value="10" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+              <div class="pts-row">
+                <div class="pts-row-label">Goal completed<small>Met the weekly target — triggers confetti</small></div>
+                <input class="pts-input" id="pts-completed" type="number" min="0" value="50" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+              <div class="pts-row">
+                <div class="pts-row-label">Daily check-in recorded<small>Each day marked on the tracker</small></div>
+                <input class="pts-input" id="pts-checkin" type="number" min="0" value="10" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+              <div class="pts-row">
+                <div class="pts-row-label">Action plan created<small>Participant fills in the action steps field</small></div>
+                <input class="pts-input" id="pts-plan" type="number" min="0" value="5" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+              <div class="pts-row">
+                <div class="pts-row-label">Scripture viewed<small>Participant opens the scripture modal</small></div>
+                <input class="pts-input" id="pts-scr-pts" type="number" min="0" value="5" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+              <div class="pts-row">
+                <div class="pts-row-label">Goal notes added<small>Participant writes a note during tracking</small></div>
+                <input class="pts-input" id="pts-notes" type="number" min="0" value="5" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="gam-card" id="card-streaks">
+            <div class="gam-card-head">
+              <div class="gam-card-head-icon icon-amber"><i class="ti ti-flame"></i></div>
+              <div>
+                <div class="gam-card-title">Streaks &amp; Milestones</div>
+                <div class="gam-card-sub">Bonus points for consistency and long-term engagement</div>
+              </div>
+            </div>
+            <div class="gam-card-body">
+              <div class="pts-row">
+                <div class="pts-row-label">2-week streak bonus<small>Complete any goal 2 consecutive weeks</small></div>
+                <input class="pts-input" id="pts-streak2" type="number" min="0" value="25" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+              <div class="pts-row">
+                <div class="pts-row-label">3-week streak bonus<small>Complete a goal 3 weeks in a row</small></div>
+                <input class="pts-input" id="pts-streak3" type="number" min="0" value="75" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+              <div class="pts-row">
+                <div class="pts-row-label">First goal ever completed<small>One-time new participant milestone</small></div>
+                <input class="pts-input" id="pts-first" type="number" min="0" value="100" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+              <div class="pts-row">
+                <div class="pts-row-label">10 goals completed (lifetime)<small>Cumulative completion milestone</small></div>
+                <input class="pts-input" id="pts-10goals" type="number" min="0" value="200" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+              <div class="pts-row">
+                <div class="pts-row-label">Goals set in all 4 categories<small>One-time badge for full engagement</small></div>
+                <input class="pts-input" id="pts-allcat" type="number" min="0" value="150" oninput="updatePreview()" />
+                <span class="pts-suffix">pts</span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /gam-grid row 1 -->
+
+        <!-- Row 2: Multipliers + Display + Notifications -->
+        <div class="gam-grid-3">
+
+          <div class="gam-card" id="card-multipliers">
+            <div class="gam-card-head">
+              <div class="gam-card-head-icon icon-purple"><i class="ti ti-percentage"></i></div>
+              <div>
+                <div class="gam-card-title">Category Multipliers</div>
+                <div class="gam-card-sub">Scale points for specific categories</div>
+              </div>
+            </div>
+            <div class="gam-card-body">
+              <div class="multiplier-row">
+                <span class="mult-badge badge-word">The Word</span>
+                <input class="pts-input" id="mult-word" type="number" min="0.1" step="0.1" value="1.0" style="width:64px;" oninput="updatePreview()" />
+                <span class="pts-suffix">×</span>
+              </div>
+              <div class="multiplier-row">
+                <span class="mult-badge badge-personal">Personal</span>
+                <input class="pts-input" id="mult-personal" type="number" min="0.1" step="0.1" value="1.0" style="width:64px;" oninput="updatePreview()" />
+                <span class="pts-suffix">×</span>
+              </div>
+              <div class="multiplier-row">
+                <span class="mult-badge badge-strong">CBH Strong</span>
+                <input class="pts-input" id="mult-strong" type="number" min="0.1" step="0.1" value="1.0" style="width:64px;" oninput="updatePreview()" />
+                <span class="pts-suffix">×</span>
+              </div>
+              <div class="multiplier-row">
+                <span class="mult-badge badge-group">Group</span>
+                <input class="pts-input" id="mult-group" type="number" min="0.1" step="0.1" value="1.0" style="width:64px;" oninput="updatePreview()" />
+                <span class="pts-suffix">×</span>
+              </div>
+              <div style="margin-top:12px;font-size:11px;color:#94a3b8;line-height:1.55;">1.0 = standard. 1.5 = 50% bonus for that category. Use this to emphasize specific ministry priorities during a program phase.</div>
+            </div>
+          </div>
+
+          <div class="gam-card" id="card-display">
+            <div class="gam-card-head">
+              <div class="gam-card-head-icon icon-teal"><i class="ti ti-eye"></i></div>
+              <div>
+                <div class="gam-card-title">Display Options</div>
+                <div class="gam-card-sub">What participants see on their dashboard</div>
+              </div>
+            </div>
+            <div class="gam-card-body">
+              <div class="toggle-row-gam">
+                <div class="toggle-row-gam-label">Show points on dashboard<small>Running total visible to participant</small></div>
+                <button class="sm-toggle" id="tog-show-points" onclick="smToggle(this)"></button>
+              </div>
+              <div class="toggle-row-gam">
+                <div class="toggle-row-gam-label">Show cohort leaderboard<small>Rankings within their cohort group</small></div>
+                <button class="sm-toggle" id="tog-leaderboard" onclick="smToggle(this)"></button>
+              </div>
+              <div class="toggle-row-gam">
+                <div class="toggle-row-gam-label">Confetti on goal complete<small>Celebration animation at completion</small></div>
+                <!-- FIX 2: pre-toggled ON by default, and reset restores this state -->
+                <button class="sm-toggle on" id="tog-confetti" onclick="smToggle(this)"></button>
+              </div>
+              <div class="toggle-row-gam">
+                <div class="toggle-row-gam-label">Show streak counter<small>Displays current weekly streak</small></div>
+                <button class="sm-toggle" id="tog-streak" onclick="smToggle(this)"></button>
+              </div>
+              <div class="toggle-row-gam">
+                <div class="toggle-row-gam-label">Show milestone badges<small>Badge icons awarded at milestones</small></div>
+                <button class="sm-toggle" id="tog-badges" onclick="smToggle(this)"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="gam-card" id="card-notifs">
+            <div class="gam-card-head">
+              <div class="gam-card-head-icon icon-coral"><i class="ti ti-bell"></i></div>
+              <div>
+                <div class="gam-card-title">Notifications</div>
+                <div class="gam-card-sub">Automated messages triggered by point events</div>
+              </div>
+            </div>
+            <div class="gam-card-body">
+              <div class="toggle-row-gam">
+                <div class="toggle-row-gam-label">Email on first goal completed<small>Welcome &amp; encouragement message</small></div>
+                <button class="sm-toggle" id="tog-email-first" onclick="smToggle(this)"></button>
+              </div>
+              <div class="toggle-row-gam">
+                <div class="toggle-row-gam-label">Email on streak milestone<small>Sent at 2-week and 3-week streaks</small></div>
+                <button class="sm-toggle" id="tog-email-streak" onclick="smToggle(this)"></button>
+              </div>
+              <div class="toggle-row-gam">
+                <div class="toggle-row-gam-label">Email on 10 goals completed<small>Lifetime milestone recognition</small></div>
+                <button class="sm-toggle" id="tog-email-10" onclick="smToggle(this)"></button>
+              </div>
+              <div class="toggle-row-gam">
+                <div class="toggle-row-gam-label">In-app toast on point award<small>Brief popup when points are earned</small></div>
+                <!-- FIX 2: pre-toggled ON by default, and reset restores this state -->
+                <button class="sm-toggle on" id="tog-toast" onclick="smToggle(this)"></button>
+              </div>
+              <div style="margin-top:12px;font-size:11px;color:#94a3b8;line-height:1.55;">Email notifications require WP Mail SMTP or similar plugin configured separately.</div>
+            </div>
+          </div>
+
+        </div><!-- /gam-grid-3 row 2 -->
+
+      </div><!-- /gam-body -->
+
+      <div class="gam-save-bar">
+        <div class="gam-save-note"><i class="ti ti-info-circle"></i> Settings are saved to the database but only take effect when the master toggle is on.</div>
+        <div class="btn-row">
+          <button class="btn" onclick="resetGamification()"><i class="ti ti-refresh"></i> Reset Defaults</button>
+          <button class="btn pri" onclick="saveGamification()"><i class="ti ti-device-floppy"></i> Save Settings</button>
+        </div>
+      </div>
+
+    </div><!-- /view-gamification -->
+
+    </div><!-- /main -->
+  </div><!-- /wrap -->
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+<script>
+/* ── DATA ───────────────────────────────────────────────────────────────── */
+let goals = [
+  {id:1,  cat:"Personal Engagement", focus:"Overcoming Sin",                                goal:"Do a daily self-examination & practice repentance",                                               scr:"",               status:"active"},
+  {id:2,  cat:"Personal Engagement", focus:"Overcoming Sin",                                goal:"Stay alert to sinful habits and practice resisting sin",                                           scr:"",               status:"active"},
+  {id:3,  cat:"Personal Engagement", focus:"Overcoming Sin",                                goal:"Practice replacing a sinful habit with a Godly habit",                                            scr:"",               status:"active"},
+  {id:4,  cat:"Personal Engagement", focus:"Overcoming Sin",                                goal:"Verbally declare freedom from sin through Christ",                                                scr:"",               status:"draft"},
+  {id:5,  cat:"Personal Engagement", focus:"Practice Forgiveness of Another Person",        goal:"Remove unforgiveness as a barrier to healing using the Unforgiveness Removal Prayer",             scr:"",               status:"active"},
+  {id:6,  cat:"Personal Engagement", focus:"Practice Forgiveness of Another Person",        goal:"Write down offences from others, then practice forgiveness & surrender them to Jesus",            scr:"",               status:"active"},
+  {id:7,  cat:"Personal Engagement", focus:"Practice Forgiveness of Another Person",        goal:"Pray for those who hurt you by using the mind of Christ to see them as He does",                 scr:"",               status:"active"},
+  {id:8,  cat:"Personal Engagement", focus:"Practice Deliverance Prayer",                   goal:"Practice deliverance prayer on my health condition",                                              scr:"",               status:"active"},
+  {id:9,  cat:"Personal Engagement", focus:"Practice Deliverance Prayer",                   goal:"Practice deliverance prayer on negative mental or emotional patterns",                            scr:"",               status:"active"},
+  {id:10, cat:"Personal Engagement", focus:"Practice Deliverance Prayer",                   goal:"Practice deliverance prayer on suspected demons from my ancestral line",                          scr:"",               status:"active"},
+  {id:11, cat:"Personal Engagement", focus:"Practice Inner Healing Prayer",                 goal:"Practice inner healing prayer for myself",                                                        scr:"",               status:"active"},
+  {id:12, cat:"Personal Engagement", focus:"Practice Intercessory Prayer",                  goal:"Practice listening to the Holy Spirit for guidance in my intercessory prayer",                   scr:"",               status:"active"},
+  {id:13, cat:"CBH Strong",          focus:"Strengthen My Body to Serve God",               goal:"Build healthy habits to build my body as a temple of the Holy Spirit",                           scr:"1 Cor. 6:19–20", status:"active"},
+  {id:14, cat:"CBH Strong",          focus:"Strengthen My Body to Serve God",               goal:"Be committed to train my body for service to God",                                               scr:"Rom. 12:1",      status:"active"},
+  {id:15, cat:"CBH Strong",          focus:"Strengthen My Body to Serve God",               goal:"Be disciplined in diet, exercise and sleep to foster a strong body and mind",                    scr:"1 Cor. 9:24–25", status:"active"},
+  {id:16, cat:"CBH Strong",          focus:"Strengthen My Body to Serve God",               goal:"Prioritize my health so that I can serve others and complete my mission",                        scr:"Phil. 3:14",     status:"active"},
+  {id:17, cat:"CBH Strong",          focus:"Do Cardio Exercise",                            goal:"Go on a walk or hike",                                                                           scr:"",               status:"active"},
+  {id:18, cat:"CBH Strong",          focus:"Do Cardio Exercise",                            goal:"Walk on a treadmill",                                                                            scr:"",               status:"active"},
+  {id:19, cat:"CBH Strong",          focus:"Do Cardio Exercise",                            goal:"Ride a stationary bike",                                                                         scr:"",               status:"active"},
+  {id:20, cat:"CBH Strong",          focus:"Do Cardio Exercise",                            goal:"Take a fitness class",                                                                           scr:"",               status:"active"},
+  {id:21, cat:"CBH Strong",          focus:"Do Cardio Exercise",                            goal:"Use dance as a way to exercise",                                                                 scr:"",               status:"active"},
+  {id:22, cat:"CBH Strong",          focus:"Improve My Strength",                           goal:"Do weekly strength training sessions",                                                           scr:"",               status:"active"},
+  {id:23, cat:"CBH Strong",          focus:"Improve My Strength",                           goal:"Use resistance bands to build strength",                                                         scr:"",               status:"active"},
+  {id:24, cat:"CBH Strong",          focus:"Improve My Strength",                           goal:"Do bodyweight exercises",                                                                        scr:"",               status:"active"},
+  {id:25, cat:"CBH Strong",          focus:"Drink More Water",                              goal:"Keep a water bottle near me all day",                                                            scr:"",               status:"active"},
+  {id:26, cat:"CBH Strong",          focus:"Drink More Water",                              goal:"Drink a glass of water first thing in the morning",                                              scr:"",               status:"archived"},
+  {id:27, cat:"CBH Strong",          focus:"Improve My Sleep Routine",                      goal:"Create a wind-down routine before bed",                                                          scr:"",               status:"active"},
+  {id:28, cat:"CBH Strong",          focus:"Improve My Sleep Routine",                      goal:"Avoid digital devices an hour before bed",                                                       scr:"",               status:"active"},
+  {id:29, cat:"CBH Strong",          focus:"Improve My Sleep Routine",                      goal:"Pray a deliverance prayer to bind & cast out a spirit of insomnia",                             scr:"",               status:"active"},
+  {id:30, cat:"CBH Strong",          focus:"Eat More Fruits and Veggies",                   goal:"Eat a salad",                                                                                    scr:"",               status:"active"},
+  {id:31, cat:"CBH Strong",          focus:"Eat More Fruits and Veggies",                   goal:"Make half my plate vegetables at dinner",                                                        scr:"",               status:"active"},
+  {id:32, cat:"CBH Strong",          focus:"Fall Asleep Sooner",                            goal:"Practice deep breathing in bed",                                                                 scr:"",               status:"draft"},
+  {id:33, cat:"The Word",            focus:"Read a Short Book of the Bible",                goal:"Break the book into daily reading portions, one chapter per day",                               scr:"",               status:"active"},
+  {id:34, cat:"The Word",            focus:"Read a Short Book of the Bible",                goal:"Listen to an audio version of the book while commuting or relaxing",                            scr:"",               status:"active"},
+  {id:35, cat:"The Word",            focus:"Memorize One Key Verse",                        goal:"Write the verse on a note card or sticky note to keep visible",                                 scr:"",               status:"active"},
+  {id:36, cat:"The Word",            focus:"Memorize One Key Verse",                        goal:"Repeat the verse out loud during morning or evening prayers",                                   scr:"",               status:"active"},
+  {id:37, cat:"The Word",            focus:"Reflect on a Parable or Psalm",                 goal:"Read the parable or psalm in a quiet place and meditate on it",                                scr:"",               status:"active"},
+  {id:38, cat:"The Word",            focus:"Journal About My Bible Reading",                goal:"Set aside 10 minutes each day to write thoughts about the reading",                             scr:"",               status:"draft"},
+  {id:39, cat:"Group Engagement",    focus:"Virtual Healing Events or Group Prayer",        goal:"Attend my Prayer Circle meeting",                                                               scr:"",               status:"active"},
+  {id:40, cat:"Group Engagement",    focus:"Virtual Healing Events or Group Prayer",        goal:"Participate in an online community-based Healing Prayer Event",                                 scr:"",               status:"active"},
+  {id:41, cat:"Group Engagement",    focus:"Encourage and Support Peers",                   goal:"Volunteer to facilitate a Prayer Circle or Cohort meeting",                                     scr:"",               status:"active"},
+  {id:42, cat:"Group Engagement",    focus:"Encourage and Support Peers",                   goal:"Share your testimony or program progress to inspire your peers",                               scr:"",               status:"active"},
+  {id:43, cat:"Group Engagement",    focus:"Support Others Through Written Communications", goal:"Post a Comment to share with peers after completing a Lesson",                                  scr:"",               status:"active"},
+  {id:44, cat:"Group Engagement",    focus:"Practice Group Intercessory Prayer",            goal:"Support a peer with daily Persistent Prayer for a healing breakthrough",                       scr:"",               status:"active"},
+];
+
+const CAT_CLASS = {"The Word":"bw","Personal Engagement":"bp","CBH Strong":"bs","Group Engagement":"bg"};
+const CAT_SHORT = {"The Word":"The Word","Personal Engagement":"Personal","CBH Strong":"CBH Strong","Group Engagement":"Group"};
+
+let editingId   = null;
+let addingRow   = false;
+let selectedIds = new Set();
+let sortCol     = 'id';
+let sortDir     = 1;
+
+/* ── FIX 1: Build focus filter dynamically from goal data ───────────────── */
+function buildFocusFilter() {
+  const focusAreas = [...new Set(goals.map(g => g.focus))].sort();
+  const select = document.getElementById('focus-filter');
+  // Keep the first "All Focus Areas" option, rebuild the rest
+  select.innerHTML = '<option value="">All Focus Areas</option>' +
+    focusAreas.map(f => `<option value="${esc(f)}">${esc(f)}</option>`).join('');
+}
+
+/* ── HELPERS ────────────────────────────────────────────────────────────── */
+function catBadge(cat) {
+  return `<span class="bdg ${CAT_CLASS[cat]||''}">${CAT_SHORT[cat]||cat}</span>`;
+}
+
+function statusHtml(s) {
+  const map = {
+    active:   { dot: "s-active",   label: "Active",   col: "" },
+    draft:    { dot: "s-draft",    label: "Draft",    col: "color:#64748b;" },
+    archived: { dot: "s-archived", label: "Archived", col: "color:#92400e;" }
+  };
+  const m = map[s] || map.draft;
+  return `<span class="sdot ${m.dot}"></span><span style="font-size:12px;${m.col}">${m.label}</span>`;
+}
+
+function esc(str) {
+  return String(str||'')
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ── RENDER ─────────────────────────────────────────────────────────────── */
+function getFiltered() {
+  const q  = document.getElementById("search-input").value.toLowerCase();
+  const cf = document.getElementById("cat-filter").value;
+  const sf = document.getElementById("status-filter").value;
+  const ff = document.getElementById("focus-filter").value;
+
+  let list = goals.filter(g => {
+    if (q  && !g.goal.toLowerCase().includes(q) && !g.focus.toLowerCase().includes(q) && !g.cat.toLowerCase().includes(q)) return false;
+    if (cf && g.cat    !== cf) return false;
+    if (sf && g.status !== sf) return false;
+    if (ff && g.focus  !== ff) return false;
+    return true;
+  });
+
+  list.sort((a, b) => {
+    let av = a[sortCol] || '', bv = b[sortCol] || '';
+    if (typeof av === 'number') return (av - bv) * sortDir;
+    return String(av).localeCompare(String(bv)) * sortDir;
+  });
+
+  return list;
+}
+
+function renderTable() {
+  const filtered = getFiltered();
+  const tbody = document.getElementById("goals-body");
+  let html = "";
+
+  if (addingRow) {
+    html += `<tr class="add-row">
+      <td></td>
+      <td class="row-num">new</td>
+      <td><input class="inline-input" id="new-goal" placeholder="Enter goal statement…" /></td>
+      <td><select class="inline-select" id="new-cat">
+        <option value="">Category…</option>
+        <option>The Word</option><option>Personal Engagement</option>
+        <option>CBH Strong</option><option>Group Engagement</option>
+      </select></td>
+      <td><input class="inline-input" id="new-focus" placeholder="Focus area…" /></td>
+      <td><input class="inline-input" id="new-scr" placeholder="e.g. John 3:16" /></td>
+      <td><select class="inline-select" id="new-status">
+        <option value="active">Active</option>
+        <option value="draft">Draft</option>
+      </select></td>
+      <td><div class="ra">
+        <div class="ib save" onclick="saveNew()"><i class="ti ti-check"></i> Save</div>
+        <div class="ib cancel-edit" onclick="cancelAdd()">Cancel</div>
+      </div></td>
+    </tr>`;
+  }
+
+  filtered.forEach(g => {
+    const checked = selectedIds.has(g.id);
+    if (editingId === g.id) {
+      html += `<tr class="editing">
+        <td><input type="checkbox" ${checked?"checked":""} onchange="toggleSelect(${g.id},this)" /></td>
+        <td class="row-num">${g.id}</td>
+        <td><input class="inline-input" id="e-goal-${g.id}" value="${esc(g.goal)}" style="width:100%;" /></td>
+        <td><select class="inline-select" id="e-cat-${g.id}">
+          <option ${g.cat==="The Word"?"selected":""}>The Word</option>
+          <option ${g.cat==="Personal Engagement"?"selected":""}>Personal Engagement</option>
+          <option ${g.cat==="CBH Strong"?"selected":""}>CBH Strong</option>
+          <option ${g.cat==="Group Engagement"?"selected":""}>Group Engagement</option>
+        </select></td>
+        <td><input class="inline-input" id="e-focus-${g.id}" value="${esc(g.focus)}" /></td>
+        <td><input class="inline-input" id="e-scr-${g.id}" value="${esc(g.scr)}" placeholder="—" /></td>
+        <td><select class="inline-select" id="e-status-${g.id}">
+          <option value="active"   ${g.status==="active"  ?"selected":""}>Active</option>
+          <option value="draft"    ${g.status==="draft"   ?"selected":""}>Draft</option>
+          <option value="archived" ${g.status==="archived"?"selected":""}>Archived</option>
+        </select></td>
+        <td><div class="ra">
+          <div class="ib save" onclick="saveEdit(${g.id})"><i class="ti ti-check"></i> Save</div>
+          <div class="ib cancel-edit" onclick="cancelEdit()">Cancel</div>
+        </div></td>
+      </tr>`;
+    } else {
+      const isActive   = g.status === "active";
+      const isArchived = g.status === "archived";
+      html += `<tr>
+        <td><input type="checkbox" ${checked?"checked":""} onchange="toggleSelect(${g.id},this)" /></td>
+        <td class="row-num">${g.id}</td>
+        <td><div class="goal-text">${esc(g.goal)}</div></td>
+        <td>${catBadge(g.cat)}</td>
+        <td style="color:#64748b;font-size:12px;line-height:1.4;">${esc(g.focus)}</td>
+        <td>${g.scr ? `<span class="scr-link">${esc(g.scr)}</span>` : `<span style="color:#cbd5e1;font-size:12px;">—</span>`}</td>
+        <td>${statusHtml(g.status)}</td>
+        <td><div class="ra">
+          <div class="ib" title="Edit" onclick="startEdit(${g.id})"><i class="ti ti-edit" style="font-size:13px;"></i></div>
+          <div class="ib" title="Duplicate" onclick="duplicate(${g.id})"><i class="ti ti-copy" style="font-size:13px;"></i></div>
+          <div class="ib" title="${isActive?'Set Draft':'Set Active'}" onclick="toggleStatus(${g.id})">
+            <i class="ti ${isActive?'ti-toggle-right':'ti-toggle-left'}" style="font-size:13px;${isActive?'color:#3B6D11':''}"></i>
+          </div>
+          <div class="ib arch" title="Archive" onclick="archiveGoal(${g.id})" ${isArchived?'style="opacity:.4;pointer-events:none;"':''}><i class="ti ti-archive" style="font-size:13px;"></i></div>
+          <div class="ib del"  title="Delete (draft only)" onclick="deleteGoal(${g.id})" ${g.status!=='draft'?'style="opacity:.4;pointer-events:none;"':''}><i class="ti ti-trash" style="font-size:13px;"></i></div>
+        </div></td>
+      </tr>`;
+    }
+  });
+
+  if (!filtered.length && !addingRow) {
+    html = `<tr><td colspan="8"><div class="empty-state">
+      <i class="ti ti-mood-empty"></i>
+      <strong>No goals found</strong>
+      No goals match your current filters. Try adjusting the search or filters above.
+    </div></td></tr>`;
+  }
+
+  tbody.innerHTML = html;
+  document.getElementById("footer-count").textContent =
+    `Showing ${filtered.length} of ${goals.length} goals`;
+
+  updateStats();
+  updateBulkBar();
+  updateNavCount();
+}
+
+function updateStats() {
+  document.getElementById("s-total").textContent    = goals.length;
+  document.getElementById("s-active").textContent   = goals.filter(g => g.status === "active").length;
+  document.getElementById("s-draft").textContent    = goals.filter(g => g.status === "draft").length;
+  document.getElementById("s-archived").textContent = goals.filter(g => g.status === "archived").length;
+  document.getElementById("s-scr").textContent      = goals.filter(g => g.scr).length;
+}
+
+function updateNavCount() {
+  document.getElementById("nav-total").textContent = goals.length;
+}
+
+/* ── FILTERS & SORT ─────────────────────────────────────────────────────── */
+function applyFilters() { renderTable(); }
+
+function resetFilters() {
+  ["search-input","cat-filter","status-filter","focus-filter"].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = "";
+  });
+  renderTable();
+}
+
+function filterCat(cat) {
+  document.getElementById("cat-filter").value = cat;
+  document.querySelectorAll(".ni").forEach(n => n.classList.remove("on"));
+  event.currentTarget.classList.add("on");
+  applyFilters();
+}
+
+function filterStatus(status) {
+  document.getElementById("status-filter").value = status;
+  document.querySelectorAll(".stat").forEach(s => s.classList.remove("active-filter"));
+  if (status) event.currentTarget.classList.add("active-filter");
+  applyFilters();
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = 1; }
+  document.querySelectorAll(".tbl th").forEach(th => th.classList.remove("sorted"));
+  event.currentTarget.classList.add("sorted");
+  renderTable();
+}
+
+/* ── EDIT ───────────────────────────────────────────────────────────────── */
+function startEdit(id) { editingId = id; addingRow = false; renderTable(); }
+function cancelEdit()  { editingId = null; renderTable(); }
+
+function saveEdit(id) {
+  const g = goals.find(x => x.id === id);
+  if (!g) return;
+  const goalVal = document.getElementById(`e-goal-${id}`).value.trim();
+  if (!goalVal) { showToast("Goal statement cannot be empty.", "warning"); return; }
+  g.goal   = goalVal;
+  g.cat    = document.getElementById(`e-cat-${id}`).value;
+  g.focus  = document.getElementById(`e-focus-${id}`).value.trim() || g.focus;
+  g.scr    = document.getElementById(`e-scr-${id}`).value.trim();
+  g.status = document.getElementById(`e-status-${id}`).value;
+  editingId = null;
+  // Rebuild focus filter in case a focus area name changed
+  buildFocusFilter();
+  showToast("Goal saved.", "success");
+  renderTable();
+}
+
+/* ── ADD ────────────────────────────────────────────────────────────────── */
+function toggleAddRow() { addingRow = !addingRow; editingId = null; renderTable(); }
+function cancelAdd()    { addingRow = false; renderTable(); }
+
+function saveNew() {
+  const goal   = document.getElementById("new-goal").value.trim();
+  const cat    = document.getElementById("new-cat").value;
+  const focus  = document.getElementById("new-focus").value.trim();
+  const scr    = document.getElementById("new-scr").value.trim();
+  const status = document.getElementById("new-status").value;
+  if (!goal)  { showToast("Goal statement is required.", "warning"); return; }
+  if (!cat)   { showToast("Category is required.", "warning"); return; }
+  if (!focus) { showToast("Focus area is required.", "warning"); return; }
+  const newId = goals.length ? Math.max(...goals.map(g => g.id)) + 1 : 1;
+  goals.unshift({ id: newId, cat, focus, goal, scr, status });
+  addingRow = false;
+  // Rebuild focus filter to include any newly added focus area
+  buildFocusFilter();
+  showToast("Goal added successfully.", "success");
+  renderTable();
+}
+
+/* ── ACTIONS ────────────────────────────────────────────────────────────── */
+function toggleStatus(id) {
+  const g = goals.find(x => x.id === id);
+  if (!g) return;
+  g.status = g.status === "active" ? "draft" : "active";
+  showToast(`Goal set to ${g.status}.`, "success");
+  renderTable();
+}
+
+function archiveGoal(id) {
+  const g = goals.find(x => x.id === id);
+  if (!g || g.status === "archived") return;
+  if (!confirm("Archive this goal? It will be hidden from participants but retained in the database.")) return;
+  g.status = "archived";
+  showToast("Goal archived.", "");
+  renderTable();
+}
+
+function deleteGoal(id) {
+  const g = goals.find(x => x.id === id);
+  if (!g || g.status !== "draft") return;
+  if (!confirm("Permanently delete this draft goal? This cannot be undone.")) return;
+  goals = goals.filter(x => x.id !== id);
+  selectedIds.delete(id);
+  buildFocusFilter();
+  showToast("Draft goal deleted.", "warning");
+  renderTable();
+}
+
+function duplicate(id) {
+  const g = goals.find(x => x.id === id);
+  if (!g) return;
+  const newId = Math.max(...goals.map(g => g.id)) + 1;
+  const idx   = goals.indexOf(g);
+  goals.splice(idx + 1, 0, { ...g, id: newId, goal: g.goal + " (copy)", status: "draft" });
+  showToast("Goal duplicated as draft.", "success");
+  renderTable();
+}
+
+/* ── SELECTION / BULK ───────────────────────────────────────────────────── */
+function toggleSelect(id, el) {
+  if (el.checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  updateBulkBar();
+}
+
+function toggleAll(el) {
+  document.querySelectorAll("#goals-body input[type=checkbox]").forEach(b => {
+    b.checked = el.checked;
+    const row  = b.closest("tr");
+    const cell = row && row.cells[1];
+    if (cell) {
+      const id = parseInt(cell.textContent);
+      if (!isNaN(id)) { el.checked ? selectedIds.add(id) : selectedIds.delete(id); }
+    }
+  });
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar   = document.getElementById("bulk-bar");
+  const count = selectedIds.size;
+  if (count > 0) {
+    bar.classList.add("show");
+    document.getElementById("bulk-count").textContent =
+      `${count} goal${count > 1 ? "s" : ""} selected`;
+  } else {
+    bar.classList.remove("show");
+  }
+}
+
+function bulkActivate() {
+  let n = 0;
+  selectedIds.forEach(id => { const g = goals.find(x => x.id === id); if (g) { g.status = "active"; n++; } });
+  showToast(`${n} goal${n>1?"s":""} set to Active.`, "success");
+  clearSelection();
+}
+function bulkDraft() {
+  let n = 0;
+  selectedIds.forEach(id => { const g = goals.find(x => x.id === id); if (g) { g.status = "draft"; n++; } });
+  showToast(`${n} goal${n>1?"s":""} set to Draft.`, "");
+  clearSelection();
+}
+function bulkArchive() {
+  if (!confirm(`Archive ${selectedIds.size} selected goal(s)?`)) return;
+  let n = 0;
+  selectedIds.forEach(id => { const g = goals.find(x => x.id === id); if (g && g.status !== "archived") { g.status = "archived"; n++; } });
+  showToast(`${n} goal${n>1?"s":""} archived.`, "");
+  clearSelection();
+}
+function clearSelection() {
+  selectedIds.clear();
+  const ca = document.getElementById("check-all");
+  if (ca) ca.checked = false;
+  renderTable();
+}
+
+/* ── INIT ───────────────────────────────────────────────────────────────── */
+// FIX 1: Build the dynamic focus filter before first render
+buildFocusFilter();
+renderTable();
+
+/* ── VIEW SWITCHING ─────────────────────────────────────────────────────── */
+function switchNav(el, viewName) {
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  el.classList.add('on');
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const target = document.getElementById('view-' + viewName);
+  if (target) target.classList.add('active');
+  if (viewName === 'goals') renderTable();
+}
+
+/* ── GAMIFICATION ───────────────────────────────────────────────────────── */
+let gamEnabled = false;
+
+function toggleMaster() {
+  gamEnabled = !gamEnabled;
+  const card   = document.getElementById('master-card');
+  const toggle = document.getElementById('master-toggle');
+  const label  = document.getElementById('master-label');
+  const sub    = document.getElementById('master-sub');
+  const note   = document.getElementById('disabled-note');
+
+  toggle.classList.toggle('on', gamEnabled);
+  card.classList.toggle('enabled', gamEnabled);
+
+  if (gamEnabled) {
+    label.textContent = 'Gamification — Currently ENABLED';
+    sub.textContent   = 'Points are now being awarded to participants based on the values below.';
+    sub.className     = 'master-toggle-sub enabled';
+    note.classList.add('hidden');
+    showToast('Gamification enabled. Points are now live.', 'success');
+  } else {
+    label.textContent = 'Gamification — Currently Disabled';
+    sub.textContent   = 'Toggle on when ready to award points to participants. No points are earned while this is off.';
+    sub.className     = 'master-toggle-sub';
+    note.classList.remove('hidden');
+    showToast('Gamification disabled. No points will be awarded.', 'warning');
+  }
+  updatePreview();
+}
+
+function smToggle(btn) {
+  btn.classList.toggle('on');
+}
+
+function updatePreview() {
+  const created   = parseInt(document.getElementById('pts-created')?.value)   || 0;
+  const completed = parseInt(document.getElementById('pts-completed')?.value) || 0;
+  const checkin   = parseInt(document.getElementById('pts-checkin')?.value)   || 0;
+
+  const checkinTotal = checkin * 7;
+  const weekTotal    = created + completed + checkinTotal;
+
+  const el = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+  el('prev-create',   created);
+  el('prev-checkin',  checkinTotal);
+  el('prev-complete', completed);
+  el('prev-total',    weekTotal);
+}
+
+const GAM_DEFAULTS = {
+  numeric: {
+    'pts-created': 10, 'pts-completed': 50, 'pts-checkin': 10,
+    'pts-plan': 5, 'pts-scr-pts': 5, 'pts-notes': 5,
+    'pts-streak2': 25, 'pts-streak3': 75, 'pts-first': 100,
+    'pts-10goals': 200, 'pts-allcat': 150,
+    'mult-word': 1.0, 'mult-personal': 1.0, 'mult-strong': 1.0, 'mult-group': 1.0
+  },
+  // FIX 2: toggles that are ON by default; all others default to OFF
+  togglesOn: ['tog-confetti', 'tog-toast']
+};
+
+function resetGamification() {
+  if (!confirm('Reset all gamification values to defaults?')) return;
+
+  // Reset numeric inputs
+  Object.entries(GAM_DEFAULTS.numeric).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+
+  // FIX 2: Reset all toggles — ON only for the two that default on
+  document.querySelectorAll('.sm-toggle').forEach(t => {
+    const isDefault = GAM_DEFAULTS.togglesOn.includes(t.id);
+    t.classList.toggle('on', isDefault);
+  });
+
+  updatePreview();
+  showToast('Gamification reset to defaults.', '');
+}
+
+function saveGamification() {
+  showToast('Gamification settings saved.', 'success');
+}
+
+// Initial preview render
+updatePreview();
+</script>
+</body>
+</html>

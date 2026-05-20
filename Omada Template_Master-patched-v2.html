@@ -7627,5 +7627,229 @@ Paste directly above </body>, after Patch 10.
   });
 })();
 </script>
+  <!--
+CBH Omada Master — Patch 12
+Purpose:
+1. When a new goal is set, reset the current-goal carousel back to the Track Goal card.
+2. Prevent old "Goal completed / Reflection saved" UI from carrying over to a new active goal.
+3. Keep the Reflect card locked until the current active goal is actually completed.
+4. Move the Past Goals / Insights label text left so it does not get cut off.
+
+Paste directly above </body>, after Patch 11.
+-->
+
+<style id="cbh-active-goal-reset-and-insights-fix-style">
+  /* Past Goals / Insights: stop right-side labels from being clipped */
+  #insightsScreen .mini-goal-row {
+    grid-template-columns: 24px 92px 48px minmax(120px, 1fr) !important;
+    column-gap: 10px !important;
+    align-items: center !important;
+  }
+
+  #insightsScreen .mini-goal-row .mini-insight-label,
+  #insightsScreen .mini-goal-row span:last-child {
+    justify-self: start !important;
+    text-align: left !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    max-width: none !important;
+  }
+
+  #insightsScreen .insights-card {
+    overflow: hidden;
+  }
+
+  @media (max-width: 767px) {
+    #insightsScreen .mini-goal-row {
+      grid-template-columns: 22px 82px 42px minmax(92px, 1fr) !important;
+      column-gap: 8px !important;
+    }
+
+    #insightsScreen .mini-goal-row .mini-insight-label,
+    #insightsScreen .mini-goal-row span:last-child {
+      font-size: 11px !important;
+      line-height: 1.2 !important;
+    }
+  }
+</style>
+
+<script id="cbh-active-goal-reset-and-insights-fix-script">
+(function () {
+  'use strict';
+
+  function restoreReflectCardMarkup() {
+    const reflectActiveState = document.getElementById('reflectActiveState');
+    if (!reflectActiveState) return;
+
+    reflectActiveState.innerHTML = `
+      <div class="current-goal-header reflect-header-clean">
+        <span class="current-goal-category"><span aria-hidden="true">☆</span> Reflect</span>
+        <span class="days-left-label">7 days left</span>
+      </div>
+
+      <h3 class="reflect-question-card">How did it go with your goal?</h3>
+
+      <div class="reflect-rating-row" aria-label="Reflect on this goal">
+        <button class="reflect-rating-box" type="button" data-reflect-quick-rating="Not Well">
+          <span class="reflect-rating-stars">★</span>
+          <span class="reflect-rating-label">Not Well</span>
+        </button>
+        <button class="reflect-rating-box" type="button" data-reflect-quick-rating="Okay">
+          <span class="reflect-rating-stars">★★</span>
+          <span class="reflect-rating-label">Okay</span>
+        </button>
+        <button class="reflect-rating-box" type="button" data-reflect-quick-rating="Great">
+          <span class="reflect-rating-stars">★★★</span>
+          <span class="reflect-rating-label">Great</span>
+        </button>
+      </div>
+    `;
+
+    reflectActiveState.querySelectorAll('[data-reflect-quick-rating]').forEach(function (button) {
+      button.addEventListener('click', function () {
+        if (typeof openReflectionWithRating === 'function') {
+          openReflectionWithRating(button.dataset.reflectQuickRating);
+        }
+      });
+    });
+  }
+
+  function lockReflectCardForActiveGoal() {
+    const reflectCard = document.getElementById('reflectCard');
+    const reflectLockedState = document.getElementById('reflectLockedState');
+    const reflectActiveState = document.getElementById('reflectActiveState');
+
+    restoreReflectCardMarkup();
+
+    if (reflectCard) {
+      reflectCard.classList.add('locked');
+    }
+
+    if (reflectLockedState) {
+      reflectLockedState.hidden = false;
+    }
+
+    if (reflectActiveState) {
+      reflectActiveState.hidden = true;
+    }
+
+    document.querySelectorAll('[data-reflect-quick-rating]').forEach(function (button) {
+      button.classList.remove('active');
+    });
+  }
+
+  function resetCurrentGoalCardForTracking() {
+    const goalCard = document.querySelector('.current-goal-card.goal-word');
+    if (!goalCard) return;
+
+    goalCard.classList.remove('ready-reflect');
+
+    const status = goalCard.querySelector('.days-left-label');
+    if (status) status.textContent = '7 days left';
+
+    const button = goalCard.querySelector('.track-goal-button');
+    if (button) {
+      button.textContent = 'Track goal';
+      button.setAttribute('data-open-tracker', '');
+      button.removeAttribute('data-open-reflection-choice');
+    }
+  }
+
+  function hideOldCompletionUI() {
+    const completedCard = document.getElementById('goalCompletedCard');
+    if (completedCard) completedCard.hidden = true;
+
+    const completePanel = document.getElementById('trackerCompletePanel');
+    if (completePanel) completePanel.hidden = true;
+  }
+
+  function resetTrackingDotsAndProgress() {
+    document.querySelectorAll('[data-complete-day]').forEach(function (dot) {
+      dot.classList.remove('done', 'in-progress');
+      dot.textContent = '+';
+    });
+
+    const trackerProgressText = document.getElementById('trackerProgressText');
+    const dashboardProgressText = document.getElementById('dashboardProgressText');
+    const trackerProgressBar = document.getElementById('trackerProgressBar');
+    const dashboardProgressBar = document.getElementById('dashboardProgressBar');
+
+    const required = (trackerProgressText?.textContent || '').match(/of\s+(\d+)\s+days/i)?.[1] || '7';
+
+    if (trackerProgressText) trackerProgressText.textContent = `0 of ${required} days`;
+    if (dashboardProgressText) dashboardProgressText.textContent = `0 of ${required} days`;
+    if (trackerProgressBar) trackerProgressBar.style.width = '0%';
+    if (dashboardProgressBar) dashboardProgressBar.style.width = '0%';
+  }
+
+  function scrollCurrentCarouselToTrackGoal() {
+    const slider = document.getElementById('currentGoalSlider');
+    if (!slider) return;
+
+    window.setTimeout(function () {
+      slider.scrollTo({ left: 0, behavior: 'instant' });
+    }, 30);
+  }
+
+  function resetNewGoalToTrackState() {
+    resetCurrentGoalCardForTracking();
+    lockReflectCardForActiveGoal();
+    hideOldCompletionUI();
+    resetTrackingDotsAndProgress();
+    scrollCurrentCarouselToTrackGoal();
+  }
+
+  function fixInsightsLabels() {
+    const labels = ['The Word', 'Personal Engagement', 'CBH Strong'];
+    const rows = document.querySelectorAll('#insightsScreen .mini-goal-row');
+
+    rows.forEach(function (row, index) {
+      const spans = row.querySelectorAll('span');
+      const labelSlot = spans[spans.length - 1];
+
+      if (labelSlot && labels[index]) {
+        labelSlot.textContent = labels[index];
+        labelSlot.classList.add('mini-insight-label');
+      }
+    });
+  }
+
+  function installPatch() {
+    fixInsightsLabels();
+
+    document.addEventListener('click', function (event) {
+      if (event.target.closest('[data-set-goal]')) {
+        window.setTimeout(resetNewGoalToTrackState, 180);
+        window.setTimeout(resetNewGoalToTrackState, 420);
+      }
+
+      if (event.target.closest('[data-open-tracker]')) {
+        window.setTimeout(scrollCurrentCarouselToTrackGoal, 80);
+      }
+
+      if (event.target.closest('[data-go-to-goals]')) {
+        window.setTimeout(fixInsightsLabels, 80);
+      }
+
+      if (event.target.closest('[data-open-insights]')) {
+        window.setTimeout(fixInsightsLabels, 80);
+      }
+    }, true);
+  }
+
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(function () {
+    installPatch();
+    fixInsightsLabels();
+  });
+})();
+</script>
 </body>
 </html>

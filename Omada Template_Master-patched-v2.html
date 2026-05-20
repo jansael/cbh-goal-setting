@@ -7044,5 +7044,285 @@ Paste directly above </body>, AFTER the final return button patch.
   });
 })();
 </script>
+  <!--
+CBH Omada Master — Patch 10
+Purpose:
+Add Omada-style "Yesterday" backfill tracking while keeping the tracker layout intact.
+
+Behavior:
+1. The first tracker dot becomes "Yesterday".
+2. The second tracker dot becomes "Today".
+3. Yesterday can be completed the same way as Today.
+4. Notes can be saved separately for Yesterday and Today in the prototype.
+5. The helper copy stays subtle and Omada-like.
+
+Paste directly above </body>, after Patch 9.
+-->
+
+<style id="cbh-yesterday-backfill-style">
+  .day-dot-wrap.cbh-selected-tracking-day .day-dot {
+    border-color: var(--action-blue) !important;
+    box-shadow: 0 0 0 4px rgba(20, 55, 93, .08);
+  }
+
+  .day-dot-wrap.cbh-yesterday-day span {
+    color: var(--action-blue);
+    font-weight: 850;
+  }
+
+  .cbh-backfill-helper {
+    margin: -2px 0 14px;
+    color: #6f7784;
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 560;
+  }
+
+  .cbh-backfill-helper strong {
+    color: var(--action-blue);
+    font-weight: 850;
+  }
+
+  .saved-note.cbh-multi-note {
+    display: grid;
+    gap: 9px;
+  }
+
+  .cbh-saved-note-item {
+    border-radius: 8px;
+    background: #f7f8f9;
+    padding: 10px 12px;
+    color: #4b5563;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .cbh-saved-note-item strong {
+    display: block;
+    color: #202632;
+    margin-bottom: 4px;
+    font-weight: 850;
+  }
+</style>
+
+<script id="cbh-yesterday-backfill-script">
+(function () {
+  'use strict';
+
+  let selectedTrackingDayIndex = 1; // Default to Today.
+  const notesByDay = {};
+
+  function dayLabelForIndex(index) {
+    if (index === 0) return 'Yesterday';
+    if (index === 1) return 'Today';
+    return 'This week';
+  }
+
+  function dateLabelForIndex(index) {
+    const date = new Date();
+    if (index === 0) date.setDate(date.getDate() - 1);
+
+    const dayName = index === 0 ? 'Yesterday' : index === 1 ? 'Today' : 'Goal Day';
+    const dateText = date.toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+    return `${dayName}, ${dateText}`;
+  }
+
+  function getDayWrap(index) {
+    const dot = document.querySelector(`[data-complete-day="${index}"]`);
+    return dot ? dot.closest('.day-dot-wrap') : null;
+  }
+
+  function markSelectedTrackingDay(index) {
+    selectedTrackingDayIndex = index;
+
+    document.querySelectorAll('.day-dot-wrap').forEach(function (wrap) {
+      wrap.classList.remove('cbh-selected-tracking-day');
+    });
+
+    const wrap = getDayWrap(index);
+    if (wrap) wrap.classList.add('cbh-selected-tracking-day');
+
+    const todayTitle = document.querySelector('.tracker-small-label');
+    if (todayTitle) {
+      todayTitle.textContent = dayLabelForIndex(index);
+    }
+
+    const notesTitle = document.querySelector('.today-notes-title');
+    if (notesTitle) {
+      notesTitle.textContent = `${dayLabelForIndex(index)}'s Notes`;
+    }
+
+    const addNoteButton = document.querySelector('[data-open-note]');
+    if (addNoteButton) {
+      addNoteButton.textContent = `+ Add progress/setbacks for ${dayLabelForIndex(index).toLowerCase()}`;
+    }
+
+    renderSavedNotes();
+  }
+
+  function installBackfillLabels() {
+    const dayDots = Array.from(document.querySelectorAll('[data-complete-day]'));
+    if (!dayDots.length) return;
+
+    const labels = ['Yesterday', 'Today', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    dayDots.forEach(function (dot, index) {
+      const wrap = dot.closest('.day-dot-wrap');
+      if (!wrap) return;
+
+      const label = wrap.querySelector('span');
+      if (!label) return;
+
+      label.textContent = labels[index] || label.textContent;
+
+      if (index === 0) {
+        wrap.classList.add('cbh-yesterday-day');
+        dot.setAttribute('aria-label', 'Track yesterday');
+      }
+
+      if (index === 1) {
+        dot.setAttribute('aria-label', 'Track today');
+      }
+    });
+
+    const dayRow = document.querySelector('.day-row');
+    if (dayRow && !document.querySelector('[data-cbh-backfill-helper]')) {
+      const helper = document.createElement('p');
+      helper.className = 'cbh-backfill-helper';
+      helper.setAttribute('data-cbh-backfill-helper', 'true');
+      helper.innerHTML = '<strong>Forgot yesterday?</strong> You can still mark yesterday complete while this goal is active.';
+      dayRow.insertAdjacentElement('afterend', helper);
+    }
+
+    if (!document.querySelector('.day-dot-wrap.cbh-selected-tracking-day')) {
+      markSelectedTrackingDay(1);
+    }
+  }
+
+  function renderSavedNotes() {
+    const savedNote = document.getElementById('savedNote');
+    const allNotesList = document.getElementById('allNotesList');
+    if (!savedNote) return;
+
+    const entries = Object.entries(notesByDay);
+    if (!entries.length) {
+      savedNote.hidden = true;
+      savedNote.classList.remove('cbh-multi-note');
+      if (allNotesList) allNotesList.textContent = 'No notes yet.';
+      return;
+    }
+
+    savedNote.hidden = false;
+    savedNote.classList.add('cbh-multi-note');
+
+    const html = entries
+      .sort(function (a, b) { return Number(a[0]) - Number(b[0]); })
+      .map(function ([index, note]) {
+        return `<div class="cbh-saved-note-item"><strong>${dateLabelForIndex(Number(index))}</strong>${note}</div>`;
+      })
+      .join('');
+
+    savedNote.innerHTML = html;
+
+    if (allNotesList) {
+      allNotesList.innerHTML = entries
+        .sort(function (a, b) { return Number(a[0]) - Number(b[0]); })
+        .map(function ([index, note]) {
+          return `<strong>${dateLabelForIndex(Number(index))}</strong><br>${note}`;
+        })
+        .join('<br><br>');
+    }
+  }
+
+  function patchNoteModalForSelectedDay() {
+    const noteOverlay = document.getElementById('noteOverlay');
+    const todayDateLabel = document.getElementById('todayDateLabel');
+    const noteText = document.getElementById('noteText');
+
+    if (todayDateLabel) {
+      todayDateLabel.textContent = dateLabelForIndex(selectedTrackingDayIndex);
+    }
+
+    if (noteText) {
+      noteText.value = notesByDay[selectedTrackingDayIndex] || '';
+      noteText.placeholder = `+ Add progress/setbacks for ${dayLabelForIndex(selectedTrackingDayIndex).toLowerCase()}`;
+    }
+
+    if (noteOverlay) {
+      noteOverlay.classList.add('active');
+      noteOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    setTimeout(function () {
+      if (noteText) noteText.focus();
+    }, 0);
+  }
+
+  function installBackfillHandlers() {
+    document.querySelectorAll('[data-complete-day]').forEach(function (dot) {
+      if (dot.dataset.cbhBackfillPatched === 'true') return;
+      dot.dataset.cbhBackfillPatched = 'true';
+
+      dot.addEventListener('click', function () {
+        markSelectedTrackingDay(Number(dot.dataset.completeDay));
+      }, true);
+    });
+
+    const addNoteButton = document.querySelector('[data-open-note]');
+    if (addNoteButton && addNoteButton.dataset.cbhBackfillNotePatched !== 'true') {
+      addNoteButton.dataset.cbhBackfillNotePatched = 'true';
+
+      addNoteButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        patchNoteModalForSelectedDay();
+      }, true);
+    }
+
+    const saveNoteButton = document.querySelector('[data-save-note]');
+    if (saveNoteButton && saveNoteButton.dataset.cbhBackfillSavePatched !== 'true') {
+      saveNoteButton.dataset.cbhBackfillSavePatched = 'true';
+
+      saveNoteButton.addEventListener('click', function (event) {
+        const noteText = document.getElementById('noteText');
+        const noteOverlay = document.getElementById('noteOverlay');
+        const note = noteText && noteText.value.trim() ? noteText.value.trim() : '+ Add progress/setbacks';
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        notesByDay[selectedTrackingDayIndex] = note;
+        renderSavedNotes();
+
+        if (noteOverlay) {
+          noteOverlay.classList.remove('active');
+          noteOverlay.setAttribute('aria-hidden', 'true');
+        }
+      }, true);
+    }
+  }
+
+  function installBackfillPatch() {
+    installBackfillLabels();
+    installBackfillHandlers();
+  }
+
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(function () {
+    installBackfillPatch();
+
+    document.addEventListener('click', function () {
+      window.setTimeout(installBackfillPatch, 80);
+    });
+  });
+})();
+</script>
 </body>
 </html>

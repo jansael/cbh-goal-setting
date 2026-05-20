@@ -7851,5 +7851,173 @@ Paste directly above </body>, after Patch 11.
   });
 })();
 </script>
+  <!--
+CBH Omada Master — Patch 13
+Purpose:
+When a goal is fully completed/reflected, remove it from "My Current Goals" instead of leaving it there.
+
+Behavior:
+1. After reflection submit, the reflected goal is no longer treated as an active/current goal.
+2. The matching card is hidden from the main Goals page "My Current Goals" carousel.
+3. If there are no remaining visible current-goal cards, the whole "My Current Goals" section is hidden.
+4. The Home / Goal Tracker screen resets to a clean state so the completed goal does not continue to look active.
+
+Paste directly above </body>, after Patch 12.
+-->
+
+<style id="cbh-remove-completed-current-goal-style">
+  .goal-card.cbh-completed-current-goal,
+  .current-goal-card.cbh-completed-current-goal,
+  .reflect-card.cbh-completed-current-goal {
+    display: none !important;
+  }
+
+  #frontCurrentGoalsSection.cbh-no-active-goals {
+    display: none !important;
+  }
+</style>
+
+<script id="cbh-remove-completed-current-goal-script">
+(function () {
+  'use strict';
+
+  function normalizeText(text) {
+    return String(text || '')
+      .toLowerCase()
+      .replace(/\s+/g, ' ')
+      .replace(/[.!?]+$/g, '')
+      .trim();
+  }
+
+  function currentGoalTitle() {
+    return normalizeText(document.getElementById('currentGoalText')?.textContent || '');
+  }
+
+  function hideMatchingFrontCurrentGoal() {
+    const target = currentGoalTitle();
+    const frontSection = document.getElementById('frontCurrentGoalsSection');
+    const frontSlider = document.getElementById('frontCurrentGoalSlider');
+    if (!frontSlider) return;
+
+    const cards = Array.from(frontSlider.querySelectorAll('.goal-card'));
+
+    cards.forEach(function (card) {
+      const text = normalizeText(card.querySelector('p')?.textContent || card.textContent || '');
+
+      // Match by visible text when possible. If there is only one visible active card, hide that one too.
+      const visibleCards = cards.filter(function (item) {
+        return !item.hidden && !item.classList.contains('cbh-completed-current-goal');
+      });
+
+      if ((target && text && (text.includes(target) || target.includes(text))) || visibleCards.length === 1) {
+        card.classList.add('cbh-completed-current-goal');
+        card.hidden = true;
+        card.removeAttribute('data-open-home-current');
+      }
+    });
+
+    const remainingVisible = cards.some(function (card) {
+      return !card.hidden && !card.classList.contains('cbh-completed-current-goal');
+    });
+
+    if (frontSection) {
+      frontSection.hidden = !remainingVisible;
+      frontSection.classList.toggle('cbh-no-active-goals', !remainingVisible);
+    }
+  }
+
+  function removeCompletedFromHomeCurrentCarousel() {
+    const currentGoalCard = document.querySelector('#currentGoalSlider .current-goal-card');
+    const reflectCard = document.getElementById('reflectCard');
+
+    if (currentGoalCard) {
+      currentGoalCard.classList.add('cbh-completed-current-goal');
+    }
+
+    if (reflectCard) {
+      reflectCard.classList.add('cbh-completed-current-goal');
+    }
+
+    const currentGoalSection = document.getElementById('currentGoalSection');
+    if (currentGoalSection) {
+      currentGoalSection.hidden = true;
+    }
+
+    const trackGoalRow = document.getElementById('trackGoalRow');
+    if (trackGoalRow) {
+      trackGoalRow.hidden = true;
+    }
+  }
+
+  function clearActiveGoalArrayIfAvailable() {
+    // In the prototype, activeGoals is declared with let inside the main script.
+    // Depending on browser/script context, it may or may not be reachable here.
+    // This guarded eval keeps the patch safe either way.
+    try {
+      if (typeof activeGoals !== 'undefined' && Array.isArray(activeGoals) && activeGoals.length) {
+        activeGoals.shift();
+        if (typeof updateFrontCurrentGoals === 'function') {
+          updateFrontCurrentGoals();
+        }
+      }
+    } catch (err) {
+      // Safe to ignore. DOM cleanup above is the primary fix.
+    }
+  }
+
+  function finalizeCompletedGoalRemoval() {
+    hideMatchingFrontCurrentGoal();
+    removeCompletedFromHomeCurrentCarousel();
+    clearActiveGoalArrayIfAvailable();
+  }
+
+  function restoreHomeForNewGoalStart() {
+    const currentGoalSection = document.getElementById('currentGoalSection');
+    const currentGoalCard = document.querySelector('#currentGoalSlider .current-goal-card');
+    const reflectCard = document.getElementById('reflectCard');
+    const trackGoalRow = document.getElementById('trackGoalRow');
+
+    if (currentGoalSection) currentGoalSection.hidden = false;
+    if (trackGoalRow) trackGoalRow.hidden = false;
+    if (currentGoalCard) currentGoalCard.classList.remove('cbh-completed-current-goal');
+    if (reflectCard) reflectCard.classList.remove('cbh-completed-current-goal');
+
+    const slider = document.getElementById('currentGoalSlider');
+    if (slider) {
+      window.setTimeout(function () {
+        slider.scrollTo({ left: 0, behavior: 'instant' });
+      }, 80);
+    }
+  }
+
+  function installPatch() {
+    document.addEventListener('click', function (event) {
+      if (event.target.closest('[data-submit-reflection]')) {
+        window.setTimeout(finalizeCompletedGoalRemoval, 160);
+        window.setTimeout(finalizeCompletedGoalRemoval, 520);
+      }
+
+      if (event.target.closest('[data-set-goal]')) {
+        window.setTimeout(restoreHomeForNewGoalStart, 220);
+        window.setTimeout(restoreHomeForNewGoalStart, 520);
+      }
+
+      if (event.target.closest('[data-go-to-goals]')) {
+        window.setTimeout(hideMatchingFrontCurrentGoal, 140);
+      }
+    }, true);
+  }
+
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(installPatch);
+})();
+</script>
 </body>
 </html>

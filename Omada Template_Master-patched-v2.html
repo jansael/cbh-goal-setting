@@ -13212,5 +13212,145 @@ Paste this block directly above </body>, after Patch 2.
   });
 })();
 </script>
+<script id="cbh-home-icon-refresh-patch">
+(function () {
+  const STYLE_ID = 'cbh-home-icon-refresh-style';
+
+  function injectStyles() {
+    if (document.getElementById(STYLE_ID)) return;
+
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
+      .cbh-home-icon-refresh,
+      .cbh-home-icon-refresh:hover,
+      .cbh-home-icon-refresh:focus,
+      .cbh-home-icon-refresh:active {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        width: auto !important;
+        height: auto !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+      }
+
+      .cbh-home-icon-refresh::before,
+      .cbh-home-icon-refresh::after {
+        display: none !important;
+        content: none !important;
+      }
+
+      .cbh-home-icon-refresh > * {
+        display: none !important;
+      }
+
+      .cbh-home-icon-refresh .cbh-home-icon-wrap {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        line-height: 0;
+      }
+
+      .cbh-home-icon-refresh .cbh-home-icon-svg {
+        display: block !important;
+        width: 34px;
+        height: 34px;
+        overflow: visible;
+      }
+
+      @media (max-width: 767px) {
+        .cbh-home-icon-refresh .cbh-home-icon-svg {
+          width: 30px;
+          height: 30px;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function getHomeSvg(gradientId) {
+    return `
+      <span class="cbh-home-icon-wrap" aria-hidden="true">
+        <svg class="cbh-home-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="${gradientId}" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#14375d"></stop>
+              <stop offset="100%" stop-color="#f47952"></stop>
+            </linearGradient>
+          </defs>
+          <path
+            d="M4.5 10.5L12 4l7.5 6.5V19a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8.5Z"
+            stroke="url(#${gradientId})"
+            stroke-width="2.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>
+          <path
+            d="M9.25 20v-5.75h5.5V20"
+            stroke="url(#${gradientId})"
+            stroke-width="2.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          ></path>
+        </svg>
+      </span>
+    `;
+  }
+
+  function findHomeButtons() {
+    const candidates = Array.from(document.querySelectorAll('button, a, [role="button"]'));
+
+    return candidates.filter(function (el) {
+      const text = [
+        el.getAttribute('aria-label') || '',
+        el.getAttribute('title') || '',
+        el.id || '',
+        typeof el.className === 'string' ? el.className : '',
+        el.textContent || ''
+      ].join(' ').toLowerCase();
+
+      return (
+        text.includes('home') ||
+        text.includes('return-home') ||
+        text.includes('goal-tracker-home')
+      );
+    });
+  }
+
+  function applyHomeIconRefresh() {
+    const targets = findHomeButtons();
+
+    targets.forEach(function (el, index) {
+      if (el.dataset.cbhHomeIconRefreshApplied === '1') return;
+
+      el.dataset.cbhHomeIconRefreshApplied = '1';
+      el.classList.add('cbh-home-icon-refresh');
+      el.setAttribute('aria-label', 'Return to Goals Home');
+      el.setAttribute('title', 'Return to Goals Home');
+      el.innerHTML = getHomeSvg('cbhHomeGradient' + index);
+    });
+  }
+
+  function ready(fn) {
+    if (document.readyState !== 'loading') {
+      fn();
+    } else {
+      document.addEventListener('DOMContentLoaded', fn);
+    }
+  }
+
+  ready(function () {
+    injectStyles();
+    applyHomeIconRefresh();
+
+    document.addEventListener('click', function () {
+      window.setTimeout(applyHomeIconRefresh, 60);
+    });
+  });
+})();
+</script>
 </body>
 </html>

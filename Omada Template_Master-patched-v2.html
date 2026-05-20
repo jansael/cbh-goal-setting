@@ -7324,5 +7324,308 @@ Paste directly above </body>, after Patch 9.
   });
 })();
 </script>
+  <!--
+CBH Omada Master — Patch 11
+Purpose:
+Refine yesterday backfill so day circles SELECT a day instead of immediately counting progress.
+
+Behavior:
+1. Tracker always opens on Today.
+2. Tapping Yesterday only selects Yesterday and shows the backfill helper + Yesterday's Notes.
+3. Tapping Today selects Today and hides the backfill helper.
+4. "Save progress" records progress for the selected day.
+5. Double-click protection prevents accidental duplicate progress.
+6. A completed day cannot be over-counted.
+
+Paste directly above </body>, after Patch 10.
+-->
+
+<style id="cbh-backfill-select-first-style">
+  .cbh-backfill-helper {
+    display: none;
+  }
+
+  .cbh-backfill-helper.cbh-show-backfill-helper {
+    display: block;
+  }
+
+  .cbh-selected-day-status {
+    margin: 0 0 12px;
+    color: #6f7784;
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 600;
+  }
+
+  .cbh-selected-day-status strong {
+    color: var(--action-blue);
+    font-weight: 850;
+  }
+
+  .day-dot-wrap.cbh-selected-tracking-day .day-dot:not(.done) {
+    border-color: var(--action-blue) !important;
+    box-shadow: 0 0 0 5px rgba(20, 55, 93, .08);
+  }
+</style>
+
+<script id="cbh-backfill-select-first-script">
+(function () {
+  'use strict';
+
+  let selectedDayIndex = 1; // Always default tracker to Today.
+  let lastSaveAt = 0;
+  const progressCounts = [0, 0, 0, 0, 0, 0, 0];
+
+  function requiredTimesPerDay() {
+    const text = (document.getElementById('trackerGoalText')?.textContent || '').toLowerCase();
+    const match = text.match(/(\d+)\s+time/);
+    return match ? Math.max(1, Number(match[1])) : 1;
+  }
+
+  function requiredGoalDays() {
+    const text = document.getElementById('trackerProgressText')?.textContent || '';
+    const match = text.match(/of\s+(\d+)\s+days/i);
+    return match ? Math.max(1, Number(match[1])) : 1;
+  }
+
+  function completedDays() {
+    const required = requiredTimesPerDay();
+    return progressCounts.filter(count => count >= required).length;
+  }
+
+  function dayWord(index) {
+    if (index === 0) return 'Yesterday';
+    if (index === 1) return 'Today';
+    return 'Selected day';
+  }
+
+  function lowerDayWord(index) {
+    return dayWord(index).toLowerCase();
+  }
+
+  function updateHelperVisibility() {
+    const helper = document.querySelector('[data-cbh-backfill-helper]');
+    if (!helper) return;
+    helper.classList.toggle('cbh-show-backfill-helper', selectedDayIndex === 0);
+  }
+
+  function updateSelectedDayCopy() {
+    const label = document.querySelector('.tracker-small-label');
+    const title = document.querySelector('.today-notes-title');
+    const addNote = document.querySelector('[data-open-note]');
+    const save = document.querySelector('[data-save-goal-progress]');
+
+    if (label) label.textContent = dayWord(selectedDayIndex).toUpperCase();
+    if (title) title.textContent = `${dayWord(selectedDayIndex)}'s Notes`;
+    if (addNote) addNote.textContent = `+ Add progress/setbacks for ${lowerDayWord(selectedDayIndex)}`;
+    if (save) save.textContent = `Save ${lowerDayWord(selectedDayIndex)}'s progress`;
+
+    let status = document.querySelector('[data-cbh-selected-day-status]');
+    const helper = document.querySelector('[data-cbh-backfill-helper]');
+
+    if (!status) {
+      status = document.createElement('p');
+      status.className = 'cbh-selected-day-status';
+      status.setAttribute('data-cbh-selected-day-status', 'true');
+
+      if (helper) {
+        helper.insertAdjacentElement('afterend', status);
+      } else {
+        const dayRow = document.querySelector('.day-row');
+        if (dayRow) dayRow.insertAdjacentElement('afterend', status);
+      }
+    }
+
+    if (status) {
+      status.innerHTML = `Selected: <strong>${dayWord(selectedDayIndex)}</strong>. Use “Save progress” to record this day.`;
+    }
+
+    updateHelperVisibility();
+  }
+
+  function selectDay(index) {
+    selectedDayIndex = index;
+
+    document.querySelectorAll('.day-dot-wrap').forEach(function (wrap) {
+      wrap.classList.remove('cbh-selected-tracking-day');
+    });
+
+    const dot = document.querySelector(`[data-complete-day="${index}"]`);
+    const wrap = dot ? dot.closest('.day-dot-wrap') : null;
+    if (wrap) wrap.classList.add('cbh-selected-tracking-day');
+
+    updateSelectedDayCopy();
+  }
+
+  function setTrackerLabels() {
+    const labels = ['Yesterday', 'Today', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    document.querySelectorAll('[data-complete-day]').forEach(function (dot, index) {
+      const wrap = dot.closest('.day-dot-wrap');
+      const span = wrap ? wrap.querySelector('span') : null;
+      if (span && labels[index]) span.textContent = labels[index];
+
+      dot.setAttribute('aria-label', `Select ${labels[index] || 'goal day'}`);
+    });
+
+    const helper = document.querySelector('[data-cbh-backfill-helper]');
+    if (helper) {
+      helper.classList.remove('cbh-show-backfill-helper');
+    }
+  }
+
+  function refreshProgressDisplay() {
+    const requiredDays = requiredGoalDays();
+    const completed = Math.min(completedDays(), requiredDays);
+    const percent = requiredDays > 0 ? Math.round((completed / requiredDays) * 100) : 0;
+
+    const trackerProgressText = document.getElementById('trackerProgressText');
+    const dashboardProgressText = document.getElementById('dashboardProgressText');
+    const trackerProgressBar = document.getElementById('trackerProgressBar');
+    const dashboardProgressBar = document.getElementById('dashboardProgressBar');
+
+    if (trackerProgressText) trackerProgressText.textContent = `${completed} of ${requiredDays} days`;
+    if (dashboardProgressText) dashboardProgressText.textContent = `${completed} of ${requiredDays} days`;
+    if (trackerProgressBar) trackerProgressBar.style.width = `${percent}%`;
+    if (dashboardProgressBar) dashboardProgressBar.style.width = `${percent}%`;
+  }
+
+  function markSelectedDayProgress() {
+    const now = Date.now();
+
+    // Prevent accidental double-click / double-tap from counting twice.
+    if (now - lastSaveAt < 800) return;
+    lastSaveAt = now;
+
+    const required = requiredTimesPerDay();
+    const dot = document.querySelector(`[data-complete-day="${selectedDayIndex}"]`);
+    if (!dot) return;
+
+    const current = progressCounts[selectedDayIndex] || 0;
+
+    // Completed days cannot be over-counted.
+    if (current >= required) {
+      dot.classList.add('done');
+      dot.textContent = '✓';
+      refreshProgressDisplay();
+      return;
+    }
+
+    const next = current + 1;
+    progressCounts[selectedDayIndex] = next;
+
+    if (next >= required) {
+      dot.classList.remove('in-progress');
+      dot.classList.add('done');
+      dot.textContent = '✓';
+    } else {
+      dot.classList.add('in-progress');
+      dot.textContent = String(next);
+    }
+
+    refreshProgressDisplay();
+
+    const requiredDays = requiredGoalDays();
+    if (completedDays() >= requiredDays) {
+      const panel = document.getElementById('trackerCompletePanel');
+      if (panel) panel.hidden = false;
+
+      const trackerProgressText = document.getElementById('trackerProgressText');
+      const dashboardProgressText = document.getElementById('dashboardProgressText');
+      const trackerProgressBar = document.getElementById('trackerProgressBar');
+      const dashboardProgressBar = document.getElementById('dashboardProgressBar');
+
+      if (trackerProgressText) trackerProgressText.textContent = `${requiredDays} of ${requiredDays} days`;
+      if (dashboardProgressText) dashboardProgressText.textContent = `${requiredDays} of ${requiredDays} days`;
+      if (trackerProgressBar) trackerProgressBar.style.width = '100%';
+      if (dashboardProgressBar) dashboardProgressBar.style.width = '100%';
+
+      if (typeof window.launchConfetti === 'function') {
+        window.launchConfetti();
+      }
+    } else {
+      const overlay = document.getElementById('trackerOverlay');
+      if (overlay) {
+        overlay.classList.remove('active');
+        overlay.setAttribute('aria-hidden', 'true');
+      }
+
+      const toast = document.getElementById('goalToast');
+      if (toast) {
+        const span = toast.querySelector('span');
+        if (span) span.textContent = `${dayWord(selectedDayIndex)} progress saved`;
+        toast.classList.add('show');
+        setTimeout(function () {
+          toast.classList.remove('show');
+          if (span) span.textContent = 'Your goal is set!';
+        }, 2800);
+      }
+    }
+  }
+
+  function resetTrackerToToday() {
+    selectedDayIndex = 1;
+    setTrackerLabels();
+    selectDay(1);
+  }
+
+  function installSelectOnlyDayDots() {
+    document.querySelectorAll('[data-complete-day]').forEach(function (dot) {
+      if (dot.dataset.cbhSelectOnlyPatched === 'true') return;
+      dot.dataset.cbhSelectOnlyPatched = 'true';
+
+      dot.addEventListener('click', function (event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        selectDay(Number(dot.dataset.completeDay));
+      }, true);
+    });
+  }
+
+  function installSaveProgressOverride() {
+    const save = document.querySelector('[data-save-goal-progress]');
+    if (!save || save.dataset.cbhSaveSelectedDayPatched === 'true') return;
+    save.dataset.cbhSaveSelectedDayPatched = 'true';
+
+    save.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      markSelectedDayProgress();
+    }, true);
+  }
+
+  function installTrackerOpenReset() {
+    document.addEventListener('click', function (event) {
+      if (event.target.closest('[data-open-tracker]')) {
+        window.setTimeout(resetTrackerToToday, 90);
+      }
+    }, true);
+  }
+
+  function installPatch() {
+    setTrackerLabels();
+    installSelectOnlyDayDots();
+    installSaveProgressOverride();
+    updateSelectedDayCopy();
+  }
+
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(function () {
+    installPatch();
+    installTrackerOpenReset();
+
+    document.addEventListener('click', function () {
+      window.setTimeout(installPatch, 80);
+    });
+  });
+})();
+</script>
 </body>
 </html>

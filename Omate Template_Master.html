@@ -5917,4 +5917,206 @@ Set my reminders for 9 AM, 12 PM and 3 PM.</textarea>
     });
   </script>
 </body>
+  <!--
+CBH Omada Master — Light Cleanup Patch
+Paste this block directly above the closing </body> tag in Omate Template_Master.html.
+
+Purpose:
+1. Keep the Omada layout intact.
+2. Clarify Past Goals / Insights labels without redesigning the card.
+3. Keep "Some days" at 1–6 days and add a developer note in the UI/code path.
+4. Clarify email reminder MVP behavior.
+5. Add a light prototype state note for cancelled goals: cancelled goals remain in history, preserve notes/progress/reason, and can be restarted later.
+-->
+
+<style id="cbh-omada-light-cleanup-styles">
+  /* Light cleanup only — no layout redesign. */
+  .mini-goal-row .mini-insight-label,
+  .mini-goal-row span:last-child.mini-insight-label {
+    color: #6f7784;
+    font-size: 12px;
+    font-weight: 750;
+    white-space: nowrap;
+  }
+
+  .cbh-prototype-note {
+    margin-top: 10px;
+    color: #6f7784;
+    font-size: 12px;
+    line-height: 1.35;
+    font-weight: 520;
+  }
+
+  .cbh-reminder-note {
+    margin: -18px 0 22px;
+    color: #6f7784;
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 520;
+    text-align: left;
+  }
+
+  .cancel-reason-panel .cbh-cancel-note {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f3f7fa;
+    color: #465465;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: left;
+  }
+
+  .past-goal-status[data-status="Cancelled"],
+  .past-goal-status.is-cancelled {
+    color: #7b8190;
+  }
+</style>
+
+<script id="cbh-omada-light-cleanup-script">
+(function () {
+  'use strict';
+
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  function addInsightLabels() {
+    const insightsScreen = document.getElementById('insightsScreen');
+    if (!insightsScreen) return;
+
+    const firstInsightsCard = insightsScreen.querySelector('.insights-card');
+    if (!firstInsightsCard) return;
+
+    const intro = firstInsightsCard.querySelector('.reflection-empty-copy');
+    if (intro) {
+      intro.textContent = "You've set 4 goals across 3 focus areas.";
+    }
+
+    const labels = ['The Word', 'Personal Engagement', 'CBH Strong'];
+    const rows = firstInsightsCard.querySelectorAll('.mini-goal-row');
+    rows.forEach(function (row, index) {
+      const spans = row.querySelectorAll('span');
+      const labelSlot = spans[spans.length - 1];
+      if (!labelSlot || !labels[index]) return;
+      labelSlot.textContent = labels[index];
+      labelSlot.classList.add('mini-insight-label');
+    });
+  }
+
+  function clarifyReflectionCopy() {
+    const insightsScreen = document.getElementById('insightsScreen');
+    if (!insightsScreen) return;
+
+    const cards = insightsScreen.querySelectorAll('.insights-card');
+    const reflectionCard = cards[1];
+    if (!reflectionCard) return;
+
+    const copy = reflectionCard.querySelector('.reflection-empty-copy');
+    if (copy) {
+      copy.textContent = 'Once you complete a goal, reflect on how it went. Reflection is required before a goal moves to completed.';
+    }
+  }
+
+  function clarifySomeDaysRule() {
+    const someDaysOptions = document.getElementById('someDaysOptions');
+    if (!someDaysOptions || someDaysOptions.querySelector('[data-cbh-some-days-note]')) return;
+
+    const note = document.createElement('p');
+    note.className = 'cbh-prototype-note';
+    note.setAttribute('data-cbh-some-days-note', 'true');
+    note.textContent = 'Prototype rule: “Some days” intentionally uses 1–6 days. Choosing “Every day” automatically means 7 days.';
+    someDaysOptions.appendChild(note);
+  }
+
+  function clarifyReminderMvp() {
+    const reminderSheet = document.querySelector('.reminder-sheet');
+    if (!reminderSheet || reminderSheet.querySelector('[data-cbh-reminder-note]')) return;
+
+    const saveButton = reminderSheet.querySelector('.save-reminder-btn, [data-save-reminder]');
+    const note = document.createElement('p');
+    note.className = 'cbh-reminder-note';
+    note.setAttribute('data-cbh-reminder-note', 'true');
+    note.textContent = 'MVP: reminders are sent by email on the selected days/time and stop when the goal is completed, cancelled, or expired.';
+
+    if (saveButton && saveButton.parentNode) {
+      saveButton.parentNode.insertBefore(note, saveButton);
+    } else {
+      reminderSheet.appendChild(note);
+    }
+  }
+
+  function clarifyCancelFlow() {
+    const cancelPanel = document.querySelector('.cancel-reason-panel');
+    if (!cancelPanel || cancelPanel.querySelector('[data-cbh-cancel-note]')) return;
+
+    const note = document.createElement('p');
+    note.className = 'cbh-cancel-note';
+    note.setAttribute('data-cbh-cancel-note', 'true');
+    note.textContent = 'Prototype rule: cancelled goals stay in history with their notes, partial progress, cancellation reason, and restart/revisit option.';
+
+    const submit = cancelPanel.querySelector('[data-submit-cancel], .cancel-submit-btn');
+    if (submit && submit.parentNode) {
+      submit.parentNode.insertBefore(note, submit);
+    } else {
+      cancelPanel.appendChild(note);
+    }
+  }
+
+  function storeCancelReasonForPrototype() {
+    const submit = document.querySelector('[data-submit-cancel]');
+    if (!submit || submit.dataset.cbhCancelPatched === 'true') return;
+    submit.dataset.cbhCancelPatched = 'true';
+
+    submit.addEventListener('click', function () {
+      const selected = document.querySelector('[data-cancel-reason].selected');
+      const customInput = document.getElementById('cancelReasonInput');
+      const selectedReason = selected ? selected.getAttribute('data-cancel-reason') : 'Not specified';
+      const customReason = customInput && customInput.value.trim() ? customInput.value.trim() : '';
+      const reason = selectedReason === 'Add my own reason' && customReason ? customReason : selectedReason;
+
+      try {
+        window.localStorage.setItem('cbhLastCancelledGoalReason', reason);
+        window.localStorage.setItem('cbhLastCancelledGoalAt', new Date().toISOString());
+      } catch (err) {
+        // localStorage may be unavailable in some preview environments. Safe to ignore.
+      }
+    }, true);
+  }
+
+  function addCancelledHistoryDemoBehavior() {
+    // Keep this intentionally light. The existing prototype owns the real list rendering.
+    // This helper only makes the Omada cancelled-goal expectation visible if a cancelled item appears.
+    document.querySelectorAll('.past-goal-status').forEach(function (statusEl) {
+      if (/cancel/i.test(statusEl.textContent)) {
+        statusEl.classList.add('is-cancelled');
+        statusEl.setAttribute('data-status', 'Cancelled');
+      }
+    });
+  }
+
+  function runAll() {
+    addInsightLabels();
+    clarifyReflectionCopy();
+    clarifySomeDaysRule();
+    clarifyReminderMvp();
+    clarifyCancelFlow();
+    storeCancelReasonForPrototype();
+    addCancelledHistoryDemoBehavior();
+  }
+
+  ready(function () {
+    runAll();
+
+    // The prototype swaps screens dynamically, so re-apply light copy fixes after clicks.
+    document.addEventListener('click', function () {
+      window.setTimeout(runAll, 50);
+    });
+  });
+})();
+</script>
 </html>

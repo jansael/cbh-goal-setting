@@ -6874,6 +6874,175 @@ This hides the older Patch 2 button and adds a new thick CBH blue/orange gradien
   });
 })();
 </script>
+  <!--
+CBH Omada Master — Patch 9
+Purpose:
+1. Keep the return/home icon hidden behind modals and completion overlays.
+2. Make the confetti burst bigger and last longer.
+Paste directly above </body>, AFTER the final return button patch.
+-->
 
+<style id="cbh-modal-and-confetti-polish-style">
+  /* Keep the return/home button below active modals */
+  .cbh-return-goals-btn,
+  [data-cbh-return-goals-final] {
+    z-index: 20 !important;
+  }
+
+  .tracker-overlay.active,
+  .notes-overlay.active,
+  .cancel-overlay.active,
+  .modal-overlay.active,
+  .reminder-sheet-overlay.active {
+    z-index: 1000 !important;
+  }
+
+  .tracker-complete-panel {
+    z-index: 1100 !important;
+  }
+
+  .tracker-overlay.active .cbh-return-goals-btn,
+  .tracker-overlay.active [data-cbh-return-goals-final],
+  .notes-overlay.active .cbh-return-goals-btn,
+  .notes-overlay.active [data-cbh-return-goals-final],
+  .cancel-overlay.active .cbh-return-goals-btn,
+  .cancel-overlay.active [data-cbh-return-goals-final],
+  .modal-overlay.active .cbh-return-goals-btn,
+  .modal-overlay.active [data-cbh-return-goals-final],
+  .reminder-sheet-overlay.active .cbh-return-goals-btn,
+  .reminder-sheet-overlay.active [data-cbh-return-goals-final] {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .cbh-big-confetti-piece {
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    width: 13px;
+    height: 23px;
+    border-radius: 3px;
+    z-index: 1800;
+    pointer-events: none;
+    animation: cbhBigConfettiPop 2400ms cubic-bezier(.12,.82,.22,1) forwards;
+  }
+
+  .cbh-big-confetti-piece.circle {
+    width: 15px;
+    height: 15px;
+    border-radius: 999px;
+  }
+
+  .cbh-big-confetti-piece.ribbon {
+    width: 8px;
+    height: 34px;
+    border-radius: 999px;
+  }
+
+  .cbh-big-confetti-piece.star {
+    width: 18px;
+    height: 18px;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 56%, 79% 91%, 50% 70%, 21% 91%, 32% 56%, 2% 35%, 39% 35%);
+  }
+
+  @keyframes cbhBigConfettiPop {
+    0% {
+      transform: translate(-50%, -50%) scale(.65) rotate(0deg);
+      opacity: 1;
+    }
+    18% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--x), var(--y)) scale(1.08) rotate(var(--r));
+      opacity: 0;
+    }
+  }
+</style>
+
+<script id="cbh-modal-and-confetti-polish-script">
+(function () {
+  'use strict';
+
+  function setReturnButtonModalState() {
+    const hasActiveOverlay = !!document.querySelector(
+      '.tracker-overlay.active, .notes-overlay.active, .cancel-overlay.active, .modal-overlay.active, .reminder-sheet-overlay.active'
+    );
+
+    document.querySelectorAll('.cbh-return-goals-btn, [data-cbh-return-goals-final]').forEach(function (button) {
+      button.style.visibility = hasActiveOverlay ? 'hidden' : '';
+      button.style.opacity = hasActiveOverlay ? '0' : '';
+      button.style.pointerEvents = hasActiveOverlay ? 'none' : '';
+    });
+  }
+
+  function launchBiggerConfetti() {
+    const shell = document.getElementById('prototypeShell') || document.body;
+    const colors = [
+      '#f47952', '#14375d', '#2ec4b6', '#ffbe0b', '#fb5607',
+      '#8338ec', '#3a86ff', '#06d6a0', '#ef476f', '#ffd166',
+      '#ffffff', '#27b7aa'
+    ];
+    const shapes = ['', 'circle', 'ribbon', 'star'];
+
+    for (let i = 0; i < 72; i++) {
+      const piece = document.createElement('div');
+      const shape = shapes[Math.floor(Math.random() * shapes.length)];
+      piece.className = `cbh-big-confetti-piece ${shape}`;
+
+      const angle = Math.random() * Math.PI * 2;
+      const distance = 140 + Math.random() * 390;
+      const x = Math.cos(angle) * distance;
+      const y = Math.sin(angle) * distance - 120;
+
+      piece.style.setProperty('--x', `${Math.round(x)}px`);
+      piece.style.setProperty('--y', `${Math.round(y)}px`);
+      piece.style.setProperty('--r', `${Math.round(420 + Math.random() * 620)}deg`);
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDelay = `${Math.random() * 180}ms`;
+
+      shell.appendChild(piece);
+      setTimeout(function () {
+        piece.remove();
+      }, 2850);
+    }
+  }
+
+  function installConfettiOverride() {
+    window.launchConfetti = launchBiggerConfetti;
+  }
+
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(function () {
+    installConfettiOverride();
+    setReturnButtonModalState();
+
+    document.addEventListener('click', function () {
+      window.setTimeout(function () {
+        installConfettiOverride();
+        setReturnButtonModalState();
+      }, 80);
+    });
+
+    const observer = new MutationObserver(function () {
+      setReturnButtonModalState();
+    });
+
+    observer.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'hidden', 'style']
+    });
+  });
+})();
+</script>
 </body>
 </html>

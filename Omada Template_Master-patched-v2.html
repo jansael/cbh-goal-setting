@@ -7028,12 +7028,106 @@ Paste directly above </body>, after the other patches.
   });
 })();
 </script>
-<path
-  d="M4.25 10.55L12 4.1l7.75 6.45V19.6H4.25V10.55Z"
-  stroke="url(#cbhSimpleHomeGradient)"
-  stroke-width="3"
-  stroke-linecap="round"
-  stroke-linejoin="round"
-></path>
+  <!--
+CBH Omada Master — Patch 6
+Purpose:
+Replace the home button SVG with ONLY the simple thick CBH blue/orange gradient house outline.
+This removes the extra interior "garage/door" line.
+Paste directly above </body>, after Patch 5.
+-->
+
+<style id="cbh-simple-home-outline-style">
+  .cbh-final-home-button,
+  .cbh-home-icon-refresh {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    min-height: 46px !important;
+    padding: 0 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 20 !important;
+  }
+
+  .cbh-final-home-button::before,
+  .cbh-final-home-button::after,
+  .cbh-home-icon-refresh::before,
+  .cbh-home-icon-refresh::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .cbh-simple-home-svg {
+    width: 36px !important;
+    height: 36px !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  @media (max-width: 767px) {
+    .cbh-simple-home-svg {
+      width: 32px !important;
+      height: 32px !important;
+    }
+  }
+</style>
+
+<script id="cbh-simple-home-outline-script">
+(function () {
+  'use strict';
+
+  function getSimpleHouseSvg() {
+    return `
+      <svg class="cbh-simple-home-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="cbhSimpleHomeGradient" x1="3.5" y1="19.5" x2="20.5" y2="4.5" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#14375d"></stop>
+            <stop offset="52%" stop-color="#7f4660"></stop>
+            <stop offset="100%" stop-color="#f47952"></stop>
+          </linearGradient>
+        </defs>
+        <path
+          d="M4.25 10.55L12 4.1l7.75 6.45V19.6H4.25V10.55Z"
+          stroke="url(#cbhSimpleHomeGradient)"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+    `;
+  }
+
+  function applySimpleHouseIcon() {
+    const buttons = document.querySelectorAll('[data-cbh-final-home-button], .cbh-final-home-button, .cbh-home-icon-refresh');
+    buttons.forEach(function (button) {
+      button.innerHTML = getSimpleHouseSvg();
+      button.setAttribute('aria-label', 'Back to Goals');
+      button.setAttribute('title', 'Back to Goals');
+    });
+  }
+
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(function () {
+    applySimpleHouseIcon();
+
+    document.addEventListener('click', function () {
+      window.setTimeout(applySimpleHouseIcon, 60);
+    });
+  });
+})();
+</script>
 </body>
 </html>

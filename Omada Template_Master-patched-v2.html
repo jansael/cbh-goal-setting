@@ -6855,5 +6855,178 @@ Paste this block directly above </body>, after Patch 2.
   });
 })();
 </script>
+  <!--
+CBH Omada Master — Patch 5
+Purpose:
+Force-add the Goal Tracker home button with the final CBH blue/orange gradient house icon.
+This patch does not depend on Patch 2/3/4 working correctly.
+Paste directly above </body>, after the other patches.
+-->
+
+<style id="cbh-force-home-button-style">
+  #homeScreen .home-top-row {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 18px !important;
+  }
+
+  .cbh-final-home-button {
+    border: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
+    padding: 0 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    cursor: pointer !important;
+    position: relative !important;
+    z-index: 20 !important;
+  }
+
+  .cbh-final-home-button::before,
+  .cbh-final-home-button::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .cbh-final-home-button svg {
+    width: 34px !important;
+    height: 34px !important;
+    display: block !important;
+    overflow: visible !important;
+    transition: transform 160ms ease, filter 160ms ease;
+  }
+
+  .cbh-final-home-button:hover svg {
+    transform: translateY(-1px) scale(1.04);
+    filter: drop-shadow(0 6px 10px rgba(20, 55, 93, .16));
+  }
+
+  .cbh-final-home-button:active svg {
+    transform: translateY(0) scale(.98);
+  }
+
+  @media (max-width: 767px) {
+    .cbh-final-home-button {
+      width: 42px !important;
+      height: 42px !important;
+      min-width: 42px !important;
+    }
+
+    .cbh-final-home-button svg {
+      width: 31px !important;
+      height: 31px !important;
+    }
+  }
+</style>
+
+<script id="cbh-force-home-button-script">
+(function () {
+  'use strict';
+
+  function goToGoalsHome() {
+    document.querySelectorAll('.screen').forEach(function (screen) {
+      screen.classList.remove('active');
+    });
+
+    const goalsScreen = document.getElementById('goalsScreen');
+    if (goalsScreen) goalsScreen.classList.add('active');
+
+    const trackerOverlay = document.getElementById('trackerOverlay');
+    const noteOverlay = document.getElementById('noteOverlay');
+    const allNotesOverlay = document.getElementById('allNotesOverlay');
+    const actionPlanDetailOverlay = document.getElementById('actionPlanDetailOverlay');
+    const reflectionOverlay = document.getElementById('reflectionOverlay');
+    const cancelConfirmOverlay = document.getElementById('cancelConfirmOverlay');
+    const cancelReasonOverlay = document.getElementById('cancelReasonOverlay');
+
+    [
+      trackerOverlay,
+      noteOverlay,
+      allNotesOverlay,
+      actionPlanDetailOverlay,
+      reflectionOverlay,
+      cancelConfirmOverlay,
+      cancelReasonOverlay
+    ].forEach(function (overlay) {
+      if (!overlay) return;
+      overlay.classList.remove('active');
+      overlay.setAttribute('aria-hidden', 'true');
+    });
+
+    if (typeof updateFrontCurrentGoals === 'function') {
+      updateFrontCurrentGoals();
+    }
+
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+
+  function homeIconSvg() {
+    const gradientId = 'cbhFinalHomeGradient';
+    return `
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="${gradientId}" x1="3" y1="20" x2="21" y2="4" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#14375d"></stop>
+            <stop offset="52%" stop-color="#7f4660"></stop>
+            <stop offset="100%" stop-color="#f47952"></stop>
+          </linearGradient>
+        </defs>
+        <path
+          d="M4.5 10.5L12 4l7.5 6.5V19a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8.5Z"
+          stroke="url(#${gradientId})"
+          stroke-width="2.95"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+    `;
+  }
+
+  function forceAddHomeButton() {
+    const row = document.querySelector('#homeScreen .home-top-row');
+    if (!row) return;
+
+    let button = row.querySelector('[data-cbh-final-home-button]');
+
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'cbh-final-home-button';
+      button.setAttribute('data-cbh-final-home-button', 'true');
+      button.setAttribute('aria-label', 'Back to Goals');
+      button.setAttribute('title', 'Back to Goals');
+      button.innerHTML = homeIconSvg();
+      row.appendChild(button);
+    }
+
+    button.onclick = function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      goToGoalsHome();
+    };
+  }
+
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(function () {
+    forceAddHomeButton();
+
+    document.addEventListener('click', function () {
+      window.setTimeout(forceAddHomeButton, 50);
+    });
+  });
+})();
+</script>
 </body>
 </html>

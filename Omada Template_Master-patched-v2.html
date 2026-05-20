@@ -7129,5 +7129,84 @@ Paste directly above </body>, after Patch 5.
   });
 })();
 </script>
+  <!--
+CBH Omada Master — Patch 7
+Purpose:
+Fix Patch 6 being hidden by the older Patch 4 CSS rule:
+.cbh-home-icon-refresh > * { display: none !important; }
+
+Paste directly above </body>, after Patch 6.
+-->
+
+<style id="cbh-home-icon-visibility-fix-style">
+  .cbh-final-home-button > .cbh-simple-home-svg,
+  .cbh-home-icon-refresh > .cbh-simple-home-svg {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .cbh-final-home-button svg,
+  .cbh-home-icon-refresh svg {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+</style>
+
+<script id="cbh-home-icon-visibility-fix-script">
+(function () {
+  'use strict';
+
+  function getSimpleHouseSvg() {
+    return `
+      <svg class="cbh-simple-home-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="cbhSimpleHomeGradientFixed" x1="3.5" y1="19.5" x2="20.5" y2="4.5" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#14375d"></stop>
+            <stop offset="52%" stop-color="#7f4660"></stop>
+            <stop offset="100%" stop-color="#f47952"></stop>
+          </linearGradient>
+        </defs>
+        <path
+          d="M4.25 10.55L12 4.1l7.75 6.45V19.6H4.25V10.55Z"
+          stroke="url(#cbhSimpleHomeGradientFixed)"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+    `;
+  }
+
+  function forceVisibleSimpleHouse() {
+    const buttons = document.querySelectorAll('[data-cbh-final-home-button], .cbh-final-home-button, .cbh-home-icon-refresh');
+
+    buttons.forEach(function (button) {
+      button.classList.remove('cbh-home-icon-refresh');
+      button.classList.add('cbh-final-home-button');
+      button.innerHTML = getSimpleHouseSvg();
+      button.setAttribute('aria-label', 'Back to Goals');
+      button.setAttribute('title', 'Back to Goals');
+    });
+  }
+
+  function ready(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  ready(function () {
+    forceVisibleSimpleHouse();
+
+    document.addEventListener('click', function () {
+      window.setTimeout(forceVisibleSimpleHouse, 90);
+    });
+  });
+})();
+</script>
 </body>
 </html>

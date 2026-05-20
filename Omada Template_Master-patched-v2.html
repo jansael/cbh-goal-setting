@@ -6715,155 +6715,16 @@ Paste this block directly above </body>, after Patch 2.
   });
 })();
 </script>
-<script id="cbh-home-icon-refresh-patch">
-(function () {
-  const STYLE_ID = 'cbh-home-icon-refresh-style';
 
-  function injectStyles() {
-    if (document.getElementById(STYLE_ID)) return;
 
-    const style = document.createElement('style');
-    style.id = STYLE_ID;
-    style.textContent = `
-      .cbh-home-icon-refresh,
-      .cbh-home-icon-refresh:hover,
-      .cbh-home-icon-refresh:focus,
-      .cbh-home-icon-refresh:active {
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        width: auto !important;
-        height: auto !important;
-        min-width: 0 !important;
-        min-height: 0 !important;
-        padding: 0 !important;
-      }
-
-      .cbh-home-icon-refresh::before,
-      .cbh-home-icon-refresh::after {
-        display: none !important;
-        content: none !important;
-      }
-
-      .cbh-home-icon-refresh > * {
-        display: none !important;
-      }
-
-      .cbh-home-icon-refresh .cbh-home-icon-wrap {
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        line-height: 0;
-      }
-
-      .cbh-home-icon-refresh .cbh-home-icon-svg {
-        display: block !important;
-        width: 34px;
-        height: 34px;
-        overflow: visible;
-      }
-
-      @media (max-width: 767px) {
-        .cbh-home-icon-refresh .cbh-home-icon-svg {
-          width: 30px;
-          height: 30px;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-  }
-
-  function getHomeSvg(gradientId) {
-    return `
-      <span class="cbh-home-icon-wrap" aria-hidden="true">
-        <svg class="cbh-home-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="${gradientId}" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stop-color="#14375d"></stop>
-              <stop offset="100%" stop-color="#f47952"></stop>
-            </linearGradient>
-          </defs>
-          <path
-            d="M4.5 10.5L12 4l7.5 6.5V19a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8.5Z"
-            stroke="url(#${gradientId})"
-            stroke-width="2.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          ></path>
-          <path
-            d="M9.25 20v-5.75h5.5V20"
-            stroke="url(#${gradientId})"
-            stroke-width="2.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          ></path>
-        </svg>
-      </span>
-    `;
-  }
-
-  function findHomeButtons() {
-    const candidates = Array.from(document.querySelectorAll('button, a, [role="button"]'));
-
-    return candidates.filter(function (el) {
-      const text = [
-        el.getAttribute('aria-label') || '',
-        el.getAttribute('title') || '',
-        el.id || '',
-        typeof el.className === 'string' ? el.className : '',
-        el.textContent || ''
-      ].join(' ').toLowerCase();
-
-      return (
-        text.includes('home') ||
-        text.includes('return-home') ||
-        text.includes('goal-tracker-home')
-      );
-    });
-  }
-
-  function applyHomeIconRefresh() {
-    const targets = findHomeButtons();
-
-    targets.forEach(function (el, index) {
-      if (el.dataset.cbhHomeIconRefreshApplied === '1') return;
-
-      el.dataset.cbhHomeIconRefreshApplied = '1';
-      el.classList.add('cbh-home-icon-refresh');
-      el.setAttribute('aria-label', 'Return to Goals Home');
-      el.setAttribute('title', 'Return to Goals Home');
-      el.innerHTML = getHomeSvg('cbhHomeGradient' + index);
-    });
-  }
-
-  function ready(fn) {
-    if (document.readyState !== 'loading') {
-      fn();
-    } else {
-      document.addEventListener('DOMContentLoaded', fn);
-    }
-  }
-
-  ready(function () {
-    injectStyles();
-    applyHomeIconRefresh();
-
-    document.addEventListener('click', function () {
-      window.setTimeout(applyHomeIconRefresh, 60);
-    });
-  });
-})();
-</script>
   <!--
-CBH Omada Master — Patch 5
+CBH Omada Master — Final Return Button Fix
 Purpose:
-Force-add the Goal Tracker home button with the final CBH blue/orange gradient house icon.
-This patch does not depend on Patch 2/3/4 working correctly.
-Paste directly above </body>, after the other patches.
+Replace all stacked home-button patches with one clean, independent return-to-Goals button.
+This hides the older Patch 2 button and adds a new thick CBH blue/orange gradient house outline.
 -->
 
-<style id="cbh-force-home-button-style">
+<style id="cbh-return-goals-final-style">
   #homeScreen .home-top-row {
     display: flex !important;
     align-items: center !important;
@@ -6871,89 +6732,97 @@ Paste directly above </body>, after the other patches.
     gap: 18px !important;
   }
 
-  .cbh-final-home-button {
+  /* Hide the older generated Patch 2 button so it cannot conflict. */
+  #homeScreen .home-top-row [data-cbh-home-return],
+  #homeScreen .home-top-row .cbh-home-return-btn,
+  #homeScreen .home-top-row .cbh-final-home-button,
+  #homeScreen .home-top-row .cbh-home-icon-refresh {
+    display: none !important;
+  }
+
+  .cbh-return-goals-btn {
+    width: 46px !important;
+    height: 46px !important;
+    min-width: 46px !important;
     border: 0 !important;
     background: transparent !important;
     box-shadow: none !important;
     border-radius: 0 !important;
-    width: 46px !important;
-    height: 46px !important;
-    min-width: 46px !important;
     padding: 0 !important;
+    margin: 0 !important;
     display: inline-grid !important;
     place-items: center !important;
     cursor: pointer !important;
     position: relative !important;
-    z-index: 20 !important;
+    z-index: 999 !important;
+    flex: 0 0 auto !important;
   }
 
-  .cbh-final-home-button::before,
-  .cbh-final-home-button::after {
-    display: none !important;
-    content: none !important;
-  }
-
-  .cbh-final-home-button svg {
-    width: 34px !important;
-    height: 34px !important;
+  .cbh-return-goals-btn svg {
+    width: 35px !important;
+    height: 35px !important;
     display: block !important;
     overflow: visible !important;
-    transition: transform 160ms ease, filter 160ms ease;
+    pointer-events: none !important;
   }
 
-  .cbh-final-home-button:hover svg {
+  .cbh-return-goals-btn:hover svg {
     transform: translateY(-1px) scale(1.04);
-    filter: drop-shadow(0 6px 10px rgba(20, 55, 93, .16));
+    filter: drop-shadow(0 5px 9px rgba(20, 55, 93, .16));
   }
 
-  .cbh-final-home-button:active svg {
+  .cbh-return-goals-btn:active svg {
     transform: translateY(0) scale(.98);
   }
 
   @media (max-width: 767px) {
-    .cbh-final-home-button {
+    .cbh-return-goals-btn {
       width: 42px !important;
       height: 42px !important;
       min-width: 42px !important;
     }
 
-    .cbh-final-home-button svg {
+    .cbh-return-goals-btn svg {
       width: 31px !important;
       height: 31px !important;
     }
   }
 </style>
 
-<script id="cbh-force-home-button-script">
+<script id="cbh-return-goals-final-script">
 (function () {
   'use strict';
 
-  function goToGoalsHome() {
+  function svgMarkup() {
+    return `
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="cbhReturnGoalsGradient" x1="3.5" y1="19.5" x2="20.5" y2="4.5" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#14375d"></stop>
+            <stop offset="52%" stop-color="#7f4660"></stop>
+            <stop offset="100%" stop-color="#f47952"></stop>
+          </linearGradient>
+        </defs>
+        <path
+          d="M4.25 10.55L12 4.1l7.75 6.45V19.6H4.25V10.55Z"
+          stroke="url(#cbhReturnGoalsGradient)"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+    `;
+  }
+
+  function goToMainGoalsScreen() {
     document.querySelectorAll('.screen').forEach(function (screen) {
       screen.classList.remove('active');
     });
 
-    const goalsScreen = document.getElementById('goalsScreen');
-    if (goalsScreen) goalsScreen.classList.add('active');
+    const goals = document.getElementById('goalsScreen');
+    if (goals) goals.classList.add('active');
 
-    const trackerOverlay = document.getElementById('trackerOverlay');
-    const noteOverlay = document.getElementById('noteOverlay');
-    const allNotesOverlay = document.getElementById('allNotesOverlay');
-    const actionPlanDetailOverlay = document.getElementById('actionPlanDetailOverlay');
-    const reflectionOverlay = document.getElementById('reflectionOverlay');
-    const cancelConfirmOverlay = document.getElementById('cancelConfirmOverlay');
-    const cancelReasonOverlay = document.getElementById('cancelReasonOverlay');
-
-    [
-      trackerOverlay,
-      noteOverlay,
-      allNotesOverlay,
-      actionPlanDetailOverlay,
-      reflectionOverlay,
-      cancelConfirmOverlay,
-      cancelReasonOverlay
-    ].forEach(function (overlay) {
-      if (!overlay) return;
+    document.querySelectorAll('.tracker-overlay, .notes-overlay, .cancel-overlay, .modal-overlay, .reminder-sheet-overlay').forEach(function (overlay) {
       overlay.classList.remove('active');
       overlay.setAttribute('aria-hidden', 'true');
     });
@@ -6965,49 +6834,26 @@ Paste directly above </body>, after the other patches.
     window.scrollTo({ top: 0, behavior: 'instant' });
   }
 
-  function homeIconSvg() {
-    const gradientId = 'cbhFinalHomeGradient';
-    return `
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="${gradientId}" x1="3" y1="20" x2="21" y2="4" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#14375d"></stop>
-            <stop offset="52%" stop-color="#7f4660"></stop>
-            <stop offset="100%" stop-color="#f47952"></stop>
-          </linearGradient>
-        </defs>
-        <path
-          d="M4.5 10.5L12 4l7.5 6.5V19a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8.5Z"
-          stroke="url(#${gradientId})"
-          stroke-width="2.95"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        ></path>
-      </svg>
-    `;
-  }
-
-  function forceAddHomeButton() {
+  function installReturnButton() {
     const row = document.querySelector('#homeScreen .home-top-row');
     if (!row) return;
 
-    let button = row.querySelector('[data-cbh-final-home-button]');
-
-    if (!button) {
-      button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'cbh-final-home-button';
-      button.setAttribute('data-cbh-final-home-button', 'true');
-      button.setAttribute('aria-label', 'Back to Goals');
-      button.setAttribute('title', 'Back to Goals');
-      button.innerHTML = homeIconSvg();
-      row.appendChild(button);
+    let btn = row.querySelector('[data-cbh-return-goals-final]');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cbh-return-goals-btn';
+      btn.setAttribute('data-cbh-return-goals-final', 'true');
+      btn.setAttribute('aria-label', 'Back to Goals');
+      btn.setAttribute('title', 'Back to Goals');
+      row.appendChild(btn);
     }
 
-    button.onclick = function (event) {
+    btn.innerHTML = svgMarkup();
+    btn.onclick = function (event) {
       event.preventDefault();
       event.stopPropagation();
-      goToGoalsHome();
+      goToMainGoalsScreen();
     };
   }
 
@@ -7020,193 +6866,14 @@ Paste directly above </body>, after the other patches.
   }
 
   ready(function () {
-    forceAddHomeButton();
+    installReturnButton();
 
     document.addEventListener('click', function () {
-      window.setTimeout(forceAddHomeButton, 50);
+      window.setTimeout(installReturnButton, 140);
     });
   });
 })();
 </script>
-  <!--
-CBH Omada Master — Patch 6
-Purpose:
-Replace the home button SVG with ONLY the simple thick CBH blue/orange gradient house outline.
-This removes the extra interior "garage/door" line.
-Paste directly above </body>, after Patch 5.
--->
 
-<style id="cbh-simple-home-outline-style">
-  .cbh-final-home-button,
-  .cbh-home-icon-refresh {
-    border: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    width: 46px !important;
-    height: 46px !important;
-    min-width: 46px !important;
-    min-height: 46px !important;
-    padding: 0 !important;
-    display: inline-grid !important;
-    place-items: center !important;
-    cursor: pointer !important;
-    position: relative !important;
-    z-index: 20 !important;
-  }
-
-  .cbh-final-home-button::before,
-  .cbh-final-home-button::after,
-  .cbh-home-icon-refresh::before,
-  .cbh-home-icon-refresh::after {
-    display: none !important;
-    content: none !important;
-  }
-
-  .cbh-simple-home-svg {
-    width: 36px !important;
-    height: 36px !important;
-    display: block !important;
-    overflow: visible !important;
-  }
-
-  @media (max-width: 767px) {
-    .cbh-simple-home-svg {
-      width: 32px !important;
-      height: 32px !important;
-    }
-  }
-</style>
-
-<script id="cbh-simple-home-outline-script">
-(function () {
-  'use strict';
-
-  function getSimpleHouseSvg() {
-    return `
-      <svg class="cbh-simple-home-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="cbhSimpleHomeGradient" x1="3.5" y1="19.5" x2="20.5" y2="4.5" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#14375d"></stop>
-            <stop offset="52%" stop-color="#7f4660"></stop>
-            <stop offset="100%" stop-color="#f47952"></stop>
-          </linearGradient>
-        </defs>
-        <path
-          d="M4.25 10.55L12 4.1l7.75 6.45V19.6H4.25V10.55Z"
-          stroke="url(#cbhSimpleHomeGradient)"
-          stroke-width="3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        ></path>
-      </svg>
-    `;
-  }
-
-  function applySimpleHouseIcon() {
-    const buttons = document.querySelectorAll('[data-cbh-final-home-button], .cbh-final-home-button, .cbh-home-icon-refresh');
-    buttons.forEach(function (button) {
-      button.innerHTML = getSimpleHouseSvg();
-      button.setAttribute('aria-label', 'Back to Goals');
-      button.setAttribute('title', 'Back to Goals');
-    });
-  }
-
-  function ready(fn) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', fn);
-    } else {
-      fn();
-    }
-  }
-
-  ready(function () {
-    applySimpleHouseIcon();
-
-    document.addEventListener('click', function () {
-      window.setTimeout(applySimpleHouseIcon, 60);
-    });
-  });
-})();
-</script>
-   <!--
-CBH Omada Master — Patch 7
-Purpose:
-Fix Patch 6 being hidden by the older Patch 4 CSS rule:
-.cbh-home-icon-refresh > * { display: none !important; }
-
-Paste directly above </body>, after Patch 6.
--->
-
-<style id="cbh-home-icon-visibility-fix-style">
-  .cbh-final-home-button > .cbh-simple-home-svg,
-  .cbh-home-icon-refresh > .cbh-simple-home-svg {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-
-  .cbh-final-home-button svg,
-  .cbh-home-icon-refresh svg {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-</style>
-
-<script id="cbh-home-icon-visibility-fix-script">
-(function () {
-  'use strict';
-
-  function getSimpleHouseSvg() {
-    return `
-      <svg class="cbh-simple-home-svg" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="cbhSimpleHomeGradientFixed" x1="3.5" y1="19.5" x2="20.5" y2="4.5" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#14375d"></stop>
-            <stop offset="52%" stop-color="#7f4660"></stop>
-            <stop offset="100%" stop-color="#f47952"></stop>
-          </linearGradient>
-        </defs>
-        <path
-          d="M4.25 10.55L12 4.1l7.75 6.45V19.6H4.25V10.55Z"
-          stroke="url(#cbhSimpleHomeGradientFixed)"
-          stroke-width="3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        ></path>
-      </svg>
-    `;
-  }
-
-  function forceVisibleSimpleHouse() {
-    const buttons = document.querySelectorAll('[data-cbh-final-home-button], .cbh-final-home-button, .cbh-home-icon-refresh');
-
-    buttons.forEach(function (button) {
-      button.classList.remove('cbh-home-icon-refresh');
-      button.classList.add('cbh-final-home-button');
-      button.innerHTML = getSimpleHouseSvg();
-      button.setAttribute('aria-label', 'Back to Goals');
-      button.setAttribute('title', 'Back to Goals');
-    });
-  }
-
-  function ready(fn) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', fn);
-    } else {
-      fn();
-    }
-  }
-
-  ready(function () {
-    forceVisibleSimpleHouse();
-
-    document.addEventListener('click', function () {
-      window.setTimeout(forceVisibleSimpleHouse, 90);
-    });
-  });
-})();
-</script>
 </body>
 </html>
